@@ -83,6 +83,15 @@ Idempotency protects systems from duplicate writes caused by retries, timeouts, 
 - `202 Accepted`: Request accepted for asynchronous processing.
 - `204 No Content`: Success with no response body.
 
+### Redirection Status Codes
+- `300 Multiple Choices` : The requested resource has multiple representations, and the client must choose one.
+- `301 Moved Permanently` : The content has been permanently assigned a new URL. Search engines and browsers should update their records and use the new link.
+- `302 Found (Temporary Redirect)` : The requested page is temporarily located at a different URL. Clients should continue to use the original URL for future requests.
+- `303 See Other` : Instructs the client to fetch the requested resource at a different URL using a GET method. Often used to redirect after form submissions to prevent duplicate posts.
+- `304 Not Modified` : Tells the browser that the cached version of the page is still valid and has not been updated. This saves bandwidth and loads pages faster.
+- `307 Temporary Redirect` : Similar to a 302, but it forces the client to use the exact same HTTP method (e.g., POST) for the redirected request.
+- `308 Permanent Redirect` : Similar to a 301, but it strictly requires the client to use the exact same HTTP method for the new URL without changing it to GET
+
 ### Common Client Error Codes
 - `400 Bad Request`: Invalid request structure or validation failure.
 - `401 Unauthorized`: Authentication is required or invalid.
