@@ -1,0 +1,26 @@
+sudo apt-get install -y build-essential libsasl2-dev python3-dev libldap2-dev libssl-dev libffi-dev libpq-dev python3-pip
+sudo apt-get install -y libmysqlclient-dev default-libmysqlclient-dev
+sudo apt-get install mysql-server
+sudo apt install python3-virtualenv
+sudo apt install python3-setuptools
+. ~/myenv/bin/activate
+(myenv) pip3 install --upgrade Cython
+#Cython is not Debian, installed on virtual env
+
+#SQL
+sudo service mysql restart
+sudo /etc/init.d/mysql start
+mysql -h 127.0.0.1 -P 3306 -u root -p main_db
+#127.0.0.1 -> localhost, 3306 -> default port, -p means auth requires password, main_db -> working db, root -> user
+#use sudo if auth errors
+#By default, MySQL only listens to local requests inside the WSL environment. Need to tell MySQL to listen on all network interfaces
+sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+bind-address = 0.0.0.
+sudo systemctl restart MySQL
+
+#XSERVER & XTERM (FORWARD GUI ELEMENTS AS CLIENT TO XSERVER, WHICH STREAMS TO WINDOWS DESKTOP)
+#Ensure Disable access control, ERR: Authorization required, but no authorization protocol specified
+.bashrc -> export DISPLAY=$(grep -m 1 nameserver /etc/resolv.conf | awk '{print $2}'):0
+#DYNAMIC ASSIGNMENT FOR WSL2
+#The error happens because WSL 2 cannot find the Windows X server at localhost. WSL 2 runs in a lightweight virtual machine with its own unique network address, meaning it must connect to Windows using the host PC's internal IP address instead of localhost. THEIR DEFININTATIONS OF LOCALHOSTS ARE DIFFERENT
+.bashrc -> export DISPLAY=$(ip route | grep default | awk '{print $3}'):0
