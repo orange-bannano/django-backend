@@ -1,0 +1,13 @@
+python -m venv .venv
+.venv\Scripts\activate
+(.venv) PS C:\Users\praty\PycharmProjects\django-backend> django-admin startproject boilerplate
+
+manage.py -> runs server with settings.py file, wrapper around django-admin commands
+settings.py -> contains all the settings for the project
+urls.py -> contains all the urls for the project
+wsgi.py -> used for deployment
+asgi.py -> used for deployment
+__init__.py -> used for making the directory a package
+
+python manage.py runserver <PORT>
+deployment server at 127.0.0.1:<PORT>

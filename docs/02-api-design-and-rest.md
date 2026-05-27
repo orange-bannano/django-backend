@@ -5,12 +5,14 @@ This file focuses on designing maintainable APIs and documenting them clearly.
 ## REST API
 
 ### Definition
-REST is an architectural style for APIs that models application data as resources and uses standard HTTP semantics to interact with them.
+REST (Representational State Transfer) is an architectural style for APIs that models application data as resources and uses standard HTTP semantics to interact with them.
+APIs may be achieved by endpoints and HTTP methods with specific URL patterns and request/response formats.
+Client apps (like angular) (frontend) interact with backend servers via APIs.
 
 ### Key Points
 - Resources should have stable, meaningful URLs.
 - Methods should align with HTTP semantics.
-- Requests should be stateless.
+- Requests should be stateless (memoryless).
 - Representations are commonly JSON.
 
 ### Important Practices
@@ -62,12 +64,12 @@ Well-modeled resources are easier to secure, evolve, and document.
 ### Validation
 - **Definition:** Ensuring incoming data matches business and format rules.
 - **Practice:** Validate at API boundaries and return clear field-level errors.
-- **Reason:** Prevents bad data from reaching core logic.
+- **Reason:** Prevents bad data from reaching core logic (important  for security, prevents injections and ensures data integrity).
 
 ### Serialization
-- **Definition:** Converting internal objects into API-friendly representations.
-- **Practice:** Keep serializer logic explicit and secure.
-- **Reason:** Prevents accidental data leakage and inconsistent responses.
+- **Definition:** Converting internal objects into API-friendly representations (like JSON).
+- **Practice:** Keep serializer logic explicit and secure (like JACKSON in JAVA converts objs to json).
+- **Reason:** Prevents accidental data leakage and inconsistent responses (ensures clients receive expected formats).
 
 ## OpenAPI
 
