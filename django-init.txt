@@ -2,12 +2,55 @@ python -m venv .venv
 .venv\Scripts\activate
 (.venv) PS C:\Users\praty\PycharmProjects\django-backend> django-admin startproject boilerplate
 
-manage.py -> runs server with settings.py file, wrapper around django-admin commands
-settings.py -> contains all the settings for the project
-urls.py -> contains all the urls for the project
-wsgi.py -> used for deployment
-asgi.py -> used for deployment
-__init__.py -> used for making the directory a package
+boilerplate\manage.py -> entry point for Django commands (runserver, migrate, test)
+boilerplate\boilerplate\__init__.py -> marks the project module as a package
+boilerplate\boilerplate\settings.py -> global settings (apps, middleware, database)
+boilerplate\boilerplate\urls.py -> top-level URL router
+boilerplate\boilerplate\wsgi.py -> WSGI entry point for sync servers
+boilerplate\boilerplate\asgi.py -> ASGI entry point for async servers
+boilerplate\db.sqlite3 -> local SQLite database (dev only)
 
+boilerplate\learning\__init__.py -> app package marker
+boilerplate\learning\apps.py -> app configuration
+boilerplate\learning\models.py -> database models, like entities in Spring
+boilerplate\learning\admin.py -> admin registrations
+boilerplate\learning\utils.py -> safe JSON and pagination helpers
+boilerplate\learning\validators.py -> input validation helpers
+boilerplate\learning\services.py -> transactional business logic
+boilerplate\learning\views.py -> HTTP handlers, requests and response, not like views in Spring, but more like controllers. UI is facilated by templates.
+boilerplate\learning\urls.py -> app-level routes
+boilerplate\learning\tests.py -> API tests
+boilerplate\learning\migrations\ -> database schema history
+
+python manage.py makemigrations <APP_NAME>
+python manage.py collectstatic
+# collect static files (CSS, JS, images) into a single location for production (assets)
+python manage.py migrate
+python manage.py check
 python manage.py runserver <PORT>
-deployment server at 127.0.0.1:<PORT>
+# development server at 127.0.0.1:<PORT>
+python manage.py shell
+# https://docs.djangoproject.com/en/6.0/topics/db/queries/
+python manage.py createsuperuser
+
+
+# Connect to MySQL server
+python manage.py dumpdata --natural-foreign --natural-primary -e contenttypes -e auth.Permission --indent 4 > datadump.json
+pip install mysqlclient
+CREATE DATABASE my_django_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'my_django_db',          # Your MySQL database name
+        'USER': 'your_mysql_user',       # Your MySQL username
+        'PASSWORD': 'your_password',     # Your MySQL password
+        'HOST': '127.0.0.1',             # Or 'localhost', or server IP
+        'PORT': '3306',                  # Default MySQL port
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
+    }
+}
+python manage.py migrate
+python manage.py loaddata datadump.json
+python manage.py runserver

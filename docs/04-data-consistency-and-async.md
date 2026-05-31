@@ -3,8 +3,6 @@
 This file explains how backends protect data integrity and handle work that should not block user requests.
 
 ## Database Transactions
-
-### Definition
 A transaction is a sequence of database operations treated as a single unit of work.
 
 ### Important Practices
@@ -68,8 +66,6 @@ Asynchronous operations run outside the main request-response path or without bl
 Async design improves responsiveness and helps systems scale.
 
 ## Event-Driven and Background Processing
-
-### Definition
 Background workers or consumers process tasks from queues, schedules, or events.
 
 ### Important Practices
@@ -81,8 +77,6 @@ Background workers or consumers process tasks from queues, schedules, or events.
 Reliable async systems need strong retry, visibility, and failure-handling rules.
 
 ## Timeouts and Retries
-
-### Definition
 Timeouts define how long to wait; retries define how to recover from temporary failure.
 
 ### Important Practices

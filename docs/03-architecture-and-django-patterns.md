@@ -2,6 +2,11 @@
 
 This file explains common server-side architecture patterns and where Django fits.
 
+## Loose coupling
+Loose coupling means components interact through well-defined interfaces, not direct dependencies.
+Actual implementation is done by the framework (via constructors, whose args are futher dependencies for class), not the developer, which are then stored in Application Context (IOC CONTAINER, SpringBoot).
+This allows for flexibility and easier maintenance at large scale.
+
 ## MVC (Model-View-Controller) (SpringBoot)
 MVC: User Request ➔ Controller (Handles Logic) ➔ Model (Data) ➔ View (UI) ➔ User
 

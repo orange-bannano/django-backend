@@ -19,6 +19,28 @@ Introduces transactions, ACID guarantees, concurrency concerns, asynchronous pro
 ### 5. [Backend Security Basics](docs/05-security-basics.md)
 Summarizes JWT, refresh tokens, session cookies including JSESSIONID, CSRF tokens, throttling, rate limiting, security headers, common injection vulnerabilities, and authentication hardening.
 
+## Learning App Quickstart
+
+The `boilerplate` folder contains a minimal Django project with a `learning` app.
+It demonstrates safe JSON handling, CSRF-protected POSTs, model validation, and
+transactional writes with a tiny Notes API.
+
+### Core Endpoints
+- `GET /api/health/` for a simple health check.
+- `GET /api/notes/` to list notes with pagination.
+- `POST /api/notes/` to create a note (requires CSRF token).
+- `POST /api/notes/<id>/archive/` to archive a note (requires CSRF token).
+
+### Quickstart (from repo root)
+```powershell
+cd C:\Users\praty\PycharmProjects\django-backend\boilerplate
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r ..\requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
 ## Suggested Reading Order
 
 1. Start with HTTP basics.
