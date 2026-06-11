@@ -72,3 +72,4 @@ def paginate_queryset(
         "next_offset": next_offset,
         "previous_offset": previous_offset,
     }
+    # using the metadata, next page can be identified via next_offset and previous page by previous_offset, which become the new offset for new page while navigating

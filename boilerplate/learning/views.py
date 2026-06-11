@@ -6,20 +6,20 @@ to helper modules so each concept is easy to copy elsewhere.
 
 from __future__ import annotations
 
-import json
-
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, csrf_exempt
-from django.views.decorators.http import require_http_methods
 from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.models import Group, Permission
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 from learning.models import Note
+from learning.permissions import is_authenticated
+from learning.serializers import AllowlistValidator
 from learning.services import archive_note, create_note, list_notes
-from learning.utils import coerce_positive_int, paginate_queryset, parse_json_body
 from learning.transactions import (
     get_cached_record,
     is_third_party_healthy,
@@ -28,9 +28,8 @@ from learning.transactions import (
     store_completed_response,
     store_pending_request,
 )
+from learning.utils import coerce_positive_int, paginate_queryset, parse_json_body
 from learning.validators import validate_note_payload, validate_transaction_payload
-from learning.permissions import is_authenticated, is_owner
-from learning.serializers import NoteSerializer, AllowlistValidator, get_api_version_from_header
 
 User = get_user_model()
 
@@ -54,14 +53,32 @@ def serialize_note(note: Note) -> dict[str, str | int | bool]:
 @csrf_exempt
 @require_http_methods(["GET"])
 def health_check(request):
-    """Return a lightweight response used by monitors and load balancers."""
+    """Return a lightweight response used by monitors and load balancers.
+
+    Postman:
+        Method: GET
+        URL: /api/health/
+        Query params: none
+        Body: none
+    """
 
     # Keep the response tiny and deterministic for monitoring.
     return JsonResponse({"status": "ok"})
 
+@csrf_exempt
+def say_hello(request):
+    """Render a simple HTML template.
 
-@ensure_csrf_cookie
-@csrf_protect
+    Postman:
+        Method: GET
+        URL: /api/
+        Query params: none
+        Body: none
+    """
+    return render(request, 'hello.html')
+
+
+@csrf_exempt
 @require_http_methods(["GET", "POST"])
 def notes_collection(request):
     """List notes or create a new note in a single endpoint.
@@ -73,6 +90,15 @@ def notes_collection(request):
     CHUNK 2:
         GET:  Supports filtering (title, is_archived) and sorting (title, created_at).
               Uses allowlists to prevent SQL injection.
+
+    Postman:
+        GET /api/notes/?limit=10&offset=0&sort=-created_at&title=django&title=python&include_archived=0
+
+        POST /api/notes/
+        {
+            "title": "Django ORM basics",
+            "body": "Review select_related and prefetch_related."
+        }
     """
 
     # ========================================================================
@@ -136,6 +162,7 @@ def notes_collection(request):
 
     # Slice the paginated subset.
     page_items, meta = paginate_queryset(
+        # The slicing happens before entering paginate_queryset.
         queryset[offset : offset + limit],
         limit=limit,
         offset=offset,
@@ -149,10 +176,18 @@ def notes_collection(request):
         }
     )
 
-@csrf_protect
+@csrf_exempt
 @require_http_methods(["POST"])
 def archive_note_view(request, note_id: int):
-    """Archive a note and return the updated resource."""
+    """Archive a note and return the updated resource.
+
+    Postman:
+        Method: POST
+        URL: /api/notes/<note_id>/archive/
+        Example URL: /api/notes/12/archive/
+        Query params: none
+        Body: none
+    """
 
     # Keep the database lookup in the service layer; handle missing rows here.
     try:
@@ -162,118 +197,21 @@ def archive_note_view(request, note_id: int):
 
     return JsonResponse({"note": serialize_note(note)})
 
-@csrf_exempt
-def say_hello(request):
-    """Render a simple HTML template."""
-    return render(request, 'hello.html')
-
-
-@ensure_csrf_cookie
-def frontend_ui(request):
-    """
-    Developer-facing single-page UI for exercising the learning API.
-
-    This page is intentionally minimal: it loads JavaScript that calls the
-    API endpoints (register, login, list/create notes, archive, etc.) so a
-    beginner can interact with the backend without crafting raw JSON each time.
-
-    Security notes:
-    - The page is served with a CSRF cookie (via @ensure_csrf_cookie). JavaScript
-      will read that cookie and attach it to unsafe requests (POST) so the
-      existing CSRF protection in views works as-is.
-    - This UI is for local development and learning only; do not expose it in
-      production without proper access controls.
-
-    Flow: request -> set csrf cookie -> render template -> client-side JS drives API calls.
-    """
-
-    # Render the frontend template located at learning/templates/learning/frontend.html
-    return render(request, 'learning/frontend.html')
-
-
-@require_http_methods(["POST"])
-@csrf_exempt
-def transactional_request(request):
-    """Forward transactional requests with idempotency protection."""
-
-    # Parse and validate the incoming JSON payload.
-    payload, error_message = parse_json_body(request)
-    if error_message:
-        return JsonResponse({"error": error_message}, status=400)
-
-    # Require an idempotency key to prevent duplicate processing.
-    idempotency_key = str(request.headers.get("Idempotency-Key", "")).strip()
-    if not idempotency_key:
-        return JsonResponse({"error": "Idempotency-Key header is required."}, status=400)
-
-    # Validate business fields before calling downstream services.
-    clean_data, errors = validate_transaction_payload(payload)
-    if errors:
-        return JsonResponse({"errors": errors}, status=400)
-
-    # Short-circuit if we have a cached response or a pending request.
-    cached_record = get_cached_record(idempotency_key)
-    if cached_record:
-        if cached_record.get("status") == "pending":
-            return JsonResponse(
-                {
-                    "error": "Request is already pending.",
-                    "idempotency_key": idempotency_key,
-                },
-                status=409,
-            )
-        if cached_record.get("status") == "completed":
-            return JsonResponse(
-                cached_record.get("response", {}),
-                status=int(cached_record.get("status_code", 200)),
-            )
-
-    # Accept-and-cache if the third-party gateway is down.
-    if not is_third_party_healthy():
-        store_pending_request(idempotency_key, clean_data)
-        return JsonResponse(
-            {
-                "status": "accepted",
-                "pending": True,
-                "idempotency_key": idempotency_key,
-            },
-            status=202,
-        )
-
-    # Attempt to reconcile any earlier pending requests.
-    reconcile_pending_requests()
-
-    # Forward the transaction to the third-party gateway.
-    status_code, gateway_payload, error = send_payment(clean_data, idempotency_key)
-    if error or status_code is None or status_code >= 500:
-        store_pending_request(idempotency_key, clean_data)
-        return JsonResponse(
-            {
-                "status": "accepted",
-                "pending": True,
-                "idempotency_key": idempotency_key,
-            },
-            status=202,
-        )
-
-    # Cache and return the successful response for idempotent retries.
-    gateway_payload = gateway_payload or {}
-    response_payload = {
-        "status": "submitted",
-        "idempotency_key": idempotency_key,
-        "gateway_response": gateway_payload,
-    }
-
-    store_completed_response(idempotency_key, response_payload, status_code)
-    return JsonResponse(response_payload, status=status_code)
-
-
 # ============================================================================
 # CHUNK 1: AUTHENTICATION AND AUTHORIZATION
 # ============================================================================
 
-@ensure_csrf_cookie
-@csrf_protect
+def is_authenticated_or_error(user):
+    if user.is_authenticated:
+        return True
+    raise PermissionDenied  # Throws an HTTP 403 error
+
+def is_admin(user):
+    if user.groups.filter(name="Admin").exists() | user.is_superuser:
+        return True
+    raise PermissionDenied  # Throws an HTTP 403 error
+
+@csrf_exempt
 @require_http_methods(["POST"])
 def login_view(request):
     """
@@ -289,6 +227,15 @@ def login_view(request):
         200: {"user": {"id": 1, "email": "user@example.com"}}
         400: {"error": "Invalid credentials."}
         401: {"error": "Authentication failed."}
+
+    Postman:
+        Method: POST
+        URL: /api/login/
+        Body:
+        {
+            "email": "admin@example.com",
+            "password": "secret123"
+        }
     """
 
     # Parse JSON input.
@@ -329,8 +276,8 @@ def login_view(request):
         }
     })
 
-@login_required
-@csrf_protect
+@user_passes_test(is_authenticated_or_error)
+@csrf_exempt
 @require_http_methods(["POST"])
 def logout_view(request):
     """
@@ -340,6 +287,13 @@ def logout_view(request):
 
     Response:
         200: {"status": "logged out"}
+
+    Postman:
+        Method: POST
+        URL: /api/logout/
+        Query params: none
+        Body: none
+        Auth: session cookie from login
     """
 
     # Clear the session for this user.
@@ -347,8 +301,8 @@ def logout_view(request):
 
     return JsonResponse({"status": "logged out"})
 
-
-@csrf_protect
+@user_passes_test(is_authenticated_or_error)
+@csrf_exempt
 @require_http_methods(["GET"])
 def current_user_view(request):
     """
@@ -361,6 +315,13 @@ def current_user_view(request):
 
     Response (unauthenticated):
         401: {"error": "Authentication required."}
+
+    Postman:
+        Method: GET
+        URL: /api/me/
+        Query params: none
+        Body: none
+        Auth: session cookie from login
     """
 
     # Check that the user is authenticated.
@@ -379,10 +340,19 @@ def current_user_view(request):
     })
 
 
-@login_required
-@csrf_protect
-@require_http_methods(["GET"])
+@user_passes_test(is_authenticated_or_error)
+@csrf_exempt
+@require_http_methods(["POST"])
 def delete_own_account(request):
+    """Delete the currently authenticated user account.
+
+    Postman:
+        Method: POST
+        URL: /api/delete/
+        Query params: none
+        Body: none
+        Auth: session cookie from login
+    """
 
     user = request.user
     logout(request)
@@ -392,10 +362,21 @@ def delete_own_account(request):
 
     return JsonResponse({"status": "permanent deleted"})
 
-@login_required
-@csrf_protect
+@user_passes_test(is_authenticated_or_error)
+@csrf_exempt
 @require_http_methods(["POST"])
 def update_password(request):
+    """Update the current user's password and log them out.
+
+    Postman:
+        Method: POST
+        URL: /api/reset/
+        Body:
+        {
+            "password": "new-secret123"
+        }
+        Auth: session cookie from login
+    """
     # Parse JSON input.
     payload, error_message = parse_json_body(request)
     if error_message:
@@ -408,10 +389,19 @@ def update_password(request):
     logout(request)
     return JsonResponse({"status": "password updated, please log in again"})
 
-@login_required
-@csrf_protect
-@require_http_methods(["GET"])
+@user_passes_test(is_authenticated_or_error)
+@csrf_exempt
+@require_http_methods(["POST"])
 def deactivate_own_account(request):
+    """Deactivate the current user's account and log them out.
+
+    Postman:
+        Method: POST
+        URL: /api/deactivate/
+        Query params: none
+        Body: none
+        Auth: session cookie from login
+    """
 
     user = request.user
     user.is_active = False
@@ -419,7 +409,8 @@ def deactivate_own_account(request):
     logout(request)
     return JsonResponse({"status": "soft deleted, logged out"})
 
-@csrf_protect
+@user_passes_test(is_admin)
+@csrf_exempt
 @require_http_methods(["POST"])
 def create_user_view(request):
     """
@@ -439,8 +430,19 @@ def create_user_view(request):
 
     Response (invalid input):
         400: {"error": "..."}
-    """
 
+    Postman:
+        Method: POST
+        URL: /api/register/
+        Body:
+        {
+            "email": "newuser@example.com",
+            "password": "secret123",
+            "first_name": "Alice",
+            "role": "Viewer"
+        }
+        Auth: admin session cookie
+    """
     # Parse JSON input.
     payload, error_message = parse_json_body(request)
     if error_message:
@@ -450,6 +452,7 @@ def create_user_view(request):
     email = payload.get("email", "").strip()
     password = payload.get("password", "").strip()
     first_name = payload.get("first_name", "").strip()
+    role = payload.get("role", "Viewer").strip()
 
     # Guard against missing required fields.
     if not email or not password:
@@ -481,12 +484,15 @@ def create_user_view(request):
             status=400,
         )
 
+    group, _ = Group.objects.get_or_create(name=role)
+
     # Create the user with the validated data.
     user = User.objects.create_user(
         username=email,  # Django requires username; use email for simplicity.
         email=email,
         password=password,
     )
+    user.groups.add(group)
     # At this point, user is a User object that has already been saved
     # to the database. You can continue to change its attributes
     # if you want to change other fields.
@@ -504,108 +510,356 @@ def create_user_view(request):
         }
     }, status=201)
 
+def serialize_group(group: Group) -> dict:
+    return {
+        "id": group.id,
+        "name": group.name,
+        "permissions": [
+            permission.codename
+            for permission in group.permissions.all()
+        ],
+    }
+
+from django.contrib.auth.models import Group, Permission
+from django.db import IntegrityError
+
+@user_passes_test(is_admin)
+@csrf_exempt
+@require_http_methods(["POST"])
+def create_group_view(request):
+    """Create a group and assign permissions.
+
+    Postman:
+        Method: POST
+        URL: not currently routed in learning/urls.py
+        Body:
+        {
+            "group": "Editor",
+            "permission": ["view_note", "add_note", "change_note"]
+        }
+        Auth: admin session cookie
+    """
+    payload, error_message = parse_json_body(request)
+    if error_message:
+        return JsonResponse(
+            {"error": error_message},
+            status=400,
+        )
+
+    group_name = payload.get("group", "").strip()
+
+    if not group_name:
+        return JsonResponse(
+            {"error": "Group name is required."},
+            status=400,
+        )
+
+    permission_codenames = payload.get("permission", ["view_note"])
+    if isinstance(permission_codenames, str):
+        permission_codenames = [permission_codenames.strip()]
+    elif isinstance(permission_codenames, list):
+        permission_codenames = [
+            str(codename).strip()
+            for codename in permission_codenames
+            if str(codename).strip()
+        ]
+    else:
+        return JsonResponse(
+            {"error": "permission must be a string or list of strings."},
+            status=400,
+        )
+
+    # permission_codenames = payload.get(
+    #     "permission",
+    #     ["view_note"],
+    # ).strip()
+    #
+    # try:
+    #     permission = Permission.objects.filter(
+    #         codename__in=permission_codenames
+    #     )
+    # except Permission.DoesNotExist:
+    #     return JsonResponse(
+    #         {"error": f"Unknown permission: {permission_codenames}"},
+    #         status=400,
+    #     )
+
+    if not permission_codenames:
+        return JsonResponse(
+            {"error": "At least one permission codename is required."},
+            status=400,
+        )
+
+    permissions = list(Permission.objects.filter(codename__in=permission_codenames))
+    found_codenames = {permission.codename for permission in permissions}
+    missing_codenames = [
+        codename for codename in permission_codenames if codename not in found_codenames
+    ]
+    if missing_codenames:
+        return JsonResponse(
+            {"error": f"Unknown permission(s): {', '.join(missing_codenames)}"},
+            status=400,
+        )
+
+    try:
+        group = Group.objects.create(
+            name=group_name
+        )
+    except IntegrityError:
+        return JsonResponse(
+            {"error": "Group already exists."},
+            status=400,
+        )
+
+    group.permissions.add(*permissions)
+
+    return JsonResponse(
+        serialize_group(group),
+        status=201,
+    )
 
 # ============================================================================
 # CHUNK 2: FILTERING, SORTING, AND PAGINATION ENHANCEMENTS
 # ============================================================================
+# @csrf_exempt
+# @require_http_methods(["GET"])
+# def notes_with_cursor_pagination(request):
+#     """
+#     Alternative to offset pagination: cursor-based pagination for stable scrolling.
+#
+#     Offsets can become inconsistent if data changes during pagination.
+#     Cursors (opaque tokens) point to specific database rows and are stable.
+#
+#     Query params:
+#         cursor: Opaque token from previous response (URL-or base64-encoded).
+#         limit: Page size (default 10, max 50).
+#         include_archived: If "1", include archived notes (default false).
+#
+#     Response includes 'next_cursor' for fetching the next page.
+#
+#     Note: This is a simplified example. Production uses encrypted cursors.
+#
+#     Flow: request -> validate -> cursor decode -> apply filters -> limit ->
+#           serialize -> encode next_cursor -> response.
+#
+#     Postman:
+#         Method: GET
+#         URL: /api/notes-cursor/?limit=5&cursor=25&include_archived=0
+#         Query params:
+#             limit=5
+#             cursor=25
+#             include_archived=0
+#         Body: none
+#     """
+#
+#     # Extract limit and cursor from query params.
+#     limit = coerce_positive_int(request.GET.get("limit"), default=10, max_value=50)
+#     cursor_param = request.GET.get("cursor", "").strip()
+#     include_archived = request.GET.get("include_archived") == "1"
+#
+#     # Decode cursors to get the starting ID (simplified; use base64 or JWT in production).
+#     start_id = 0
+#     if cursor_param:
+#         try:
+#             start_id = int(cursor_param)
+#         except ValueError:
+#             return JsonResponse({"error": "Invalid cursor."}, status=400)
+#
+#     # Fetch one extra row to determine if there's a next page.
+#     queryset = Note.objects.filter(id__gt=start_id).order_by("id")
+#
+#     # Optionally filter archived notes.
+#     if not include_archived:
+#         queryset = queryset.filter(is_archived=False)
+#
+#     all_items = list(queryset[: limit + 1])
+#
+#     # Determine next cursor.
+#     has_next = len(all_items) > limit
+#     page_items = all_items[:limit]
+#     next_cursor = str(page_items[-1].id) if has_next and page_items else None
+#
+#     return JsonResponse({
+#         "notes": [serialize_note(note) for note in page_items],
+#         "next_cursor": next_cursor,
+#         "has_next": has_next,
+#     })
+#
+#
+# @csrf_exempt
+# @require_http_methods(["GET"])
+# def my_notes_view(request):
+#     """
+#     List only the current user's notes (protected endpoint).
+#
+#     Demonstrates ownership-based access control.
+#
+#     Flow: request -> auth check -> filter by user -> serialize -> response.
+#
+#     If Note model had a 'user' FK, this would filter by request.user.
+#     For now, we just demonstrate the pattern with all notes (owner check in production).
+#
+#     Response (authenticated):
+#         200: {"notes": [...], "meta": {...}}
+#
+#     Response (unauthenticated):
+#         401: {"error": "Authentication required."}
+#
+#     Postman:
+#         Method: GET
+#         URL: /api/my-notes/?limit=10&offset=0
+#         Query params:
+#             limit=10
+#             offset=0
+#         Body: none
+#         Auth: session cookie from login
+#     """
+#
+#     # Enforce authentication before proceeding.
+#     if not is_authenticated(request.user):
+#         return JsonResponse(
+#             {"error": "Authentication required."},
+#             status=401,
+#         )
+#
+#     # In a real app, filter by request.user: Note.objects.filter(user=request.user)
+#     # For this example, list all non-archived notes (placeholder).
+#     queryset = Note.objects.filter(is_archived=False)
+#     limit = coerce_positive_int(request.GET.get("limit"), default=10, max_value=50)
+#     offset = coerce_positive_int(request.GET.get("offset"), default=0, max_value=10_000)
+#
+#     total_count = queryset.count()
+#     page_items, meta = paginate_queryset(
+#         queryset[offset : offset + limit],
+#         limit=limit,
+#         offset=offset,
+#         total_count=total_count,
+#     )
+#
+#     return JsonResponse({
+#         "notes": [serialize_note(note) for note in page_items],
+#         "meta": meta,
+#     })
 
-@require_http_methods(["GET"])
-def notes_with_cursor_pagination(request):
+@csrf_exempt
+def frontend_ui(request):
     """
-    Alternative to offset pagination: cursor-based pagination for stable scrolling.
+    Developer-facing single-page UI for exercising the learning API.
 
-    Offsets can become inconsistent if data changes during pagination.
-    Cursors (opaque tokens) point to specific database rows and are stable.
+    This page is intentionally minimal: it loads JavaScript that calls the
+    API endpoints (register, login, list/create notes, archive, etc.) so a
+    beginner can interact with the backend without crafting raw JSON each time.
 
-    Query params:
-        cursor: Opaque token from previous response (URL-or base64-encoded).
-        limit: Page size (default 10, max 50).
-        include_archived: If "1", include archived notes (default false).
+    Security notes:
+    - The page is served with a CSRF cookie (via @ensure_csrf_cookie). JavaScript
+      will read that cookie and attach it to unsafe requests (POST) so the
+      existing CSRF protection in views works as-is.
+    - This UI is for local development and learning only; do not expose it in
+      production without proper access controls.
 
-    Response includes 'next_cursor' for fetching the next page.
+    Flow: request -> set csrf cookie -> render template -> client-side JS drives API calls.
 
-    Note: This is a simplified example. Production uses encrypted cursors.
-
-    Flow: request -> validate -> cursor decode -> apply filters -> limit ->
-          serialize -> encode next_cursor -> response.
+    Postman:
+        Method: GET
+        URL: /api/ui/
+        Query params: none
+        Body: none
     """
 
-    # Extract limit and cursor from query params.
-    limit = coerce_positive_int(request.GET.get("limit"), default=10, max_value=50)
-    cursor_param = request.GET.get("cursor", "").strip()
-    include_archived = request.GET.get("include_archived") == "1"
+    # Render the frontend template located at learning/templates/learning/frontend.html
+    return render(request, 'learning/frontend.html')
 
-    # Decode cursors to get the starting ID (simplified; use base64 or JWT in production).
-    start_id = 0
-    if cursor_param:
-        try:
-            start_id = int(cursor_param)
-        except ValueError:
-            return JsonResponse({"error": "Invalid cursor."}, status=400)
+# @require_http_methods(["POST"])
+# @csrf_exempt
+# def transactional_request(request):
+#     """Forward transactional requests with idempotency protection.
+#
+#     Postman:
+#         Method: POST
+#         URL: /api/transactions/
+#         Headers:
+#             Idempotency-Key: 8f0a9d52-7f40-4a16-b0db-6d7df06e6c11
+#         Body:
+#         {
+#             "reference": "INV-1001",
+#             "amount": "499.99",
+#             "currency": "INR",
+#             "description": "June hosting invoice",
+#             "metadata": {
+#                 "vendor_id": "vendor-42",
+#                 "source": "postman"
+#             }
+#         }
+#     """
+#
+#     # Parse and validate the incoming JSON payload.
+#     payload, error_message = parse_json_body(request)
+#     if error_message:
+#         return JsonResponse({"error": error_message}, status=400)
+#
+#     # Require an idempotency key to prevent duplicate processing.
+#     idempotency_key = str(request.headers.get("Idempotency-Key", "")).strip()
+#     if not idempotency_key:
+#         return JsonResponse({"error": "Idempotency-Key header is required."}, status=400)
+#
+#     # Validate business fields before calling downstream services.
+#     clean_data, errors = validate_transaction_payload(payload)
+#     if errors:
+#         return JsonResponse({"errors": errors}, status=400)
+#
+#     # Short-circuit if we have a cached response or a pending request.
+#     cached_record = get_cached_record(idempotency_key)
+#     if cached_record:
+#         if cached_record.get("status") == "pending":
+#             return JsonResponse(
+#                 {
+#                     "error": "Request is already pending.",
+#                     "idempotency_key": idempotency_key,
+#                 },
+#                 status=409,
+#             )
+#         if cached_record.get("status") == "completed":
+#             return JsonResponse(
+#                 cached_record.get("response", {}),
+#                 status=int(cached_record.get("status_code", 200)),
+#             )
+#
+#     # Accept-and-cache if the third-party gateway is down.
+#     if not is_third_party_healthy():
+#         store_pending_request(idempotency_key, clean_data)
+#         return JsonResponse(
+#             {
+#                 "status": "accepted",
+#                 "pending": True,
+#                 "idempotency_key": idempotency_key,
+#             },
+#             status=202,
+#         )
+#
+#     # Attempt to reconcile any earlier pending requests.
+#     reconcile_pending_requests()
+#
+#     # Forward the transaction to the third-party gateway.
+#     status_code, gateway_payload, error = send_payment(clean_data, idempotency_key)
+#     if error or status_code is None or status_code >= 500:
+#         store_pending_request(idempotency_key, clean_data)
+#         return JsonResponse(
+#             {
+#                 "status": "accepted",
+#                 "pending": True,
+#                 "idempotency_key": idempotency_key,
+#             },
+#             status=202,
+#         )
+#
+#     # Cache and return the successful response for idempotent retries.
+#     gateway_payload = gateway_payload or {}
+#     response_payload = {
+#         "status": "submitted",
+#         "idempotency_key": idempotency_key,
+#         "gateway_response": gateway_payload,
+#     }
+#
+#     store_completed_response(idempotency_key, response_payload, status_code)
+#     return JsonResponse(response_payload, status=status_code)
 
-    # Fetch one extra row to determine if there's a next page.
-    queryset = Note.objects.filter(id__gt=start_id).order_by("id")
-
-    # Optionally filter archived notes.
-    if not include_archived:
-        queryset = queryset.filter(is_archived=False)
-
-    all_items = list(queryset[: limit + 1])
-
-    # Determine next cursor.
-    has_next = len(all_items) > limit
-    page_items = all_items[:limit]
-    next_cursor = str(page_items[-1].id) if has_next and page_items else None
-
-    return JsonResponse({
-        "notes": [serialize_note(note) for note in page_items],
-        "next_cursor": next_cursor,
-        "has_next": has_next,
-    })
-
-
-@csrf_protect
-@require_http_methods(["GET"])
-def my_notes_view(request):
-    """
-    List only the current user's notes (protected endpoint).
-
-    Demonstrates ownership-based access control.
-
-    Flow: request -> auth check -> filter by user -> serialize -> response.
-
-    If Note model had a 'user' FK, this would filter by request.user.
-    For now, we just demonstrate the pattern with all notes (owner check in production).
-
-    Response (authenticated):
-        200: {"notes": [...], "meta": {...}}
-
-    Response (unauthenticated):
-        401: {"error": "Authentication required."}
-    """
-
-    # Enforce authentication before proceeding.
-    if not is_authenticated(request.user):
-        return JsonResponse(
-            {"error": "Authentication required."},
-            status=401,
-        )
-
-    # In a real app, filter by request.user: Note.objects.filter(user=request.user)
-    # For this example, list all non-archived notes (placeholder).
-    queryset = Note.objects.filter(is_archived=False)
-    limit = coerce_positive_int(request.GET.get("limit"), default=10, max_value=50)
-    offset = coerce_positive_int(request.GET.get("offset"), default=0, max_value=10_000)
-
-    total_count = queryset.count()
-    page_items, meta = paginate_queryset(
-        queryset[offset : offset + limit],
-        limit=limit,
-        offset=offset,
-        total_count=total_count,
-    )
-
-    return JsonResponse({
-        "notes": [serialize_note(note) for note in page_items],
-        "meta": meta,
-    })

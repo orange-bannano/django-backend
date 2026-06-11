@@ -38,53 +38,53 @@ def validate_note_payload(
     }, errors
 
 
-def validate_transaction_payload(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, str]]:
-    """Validate transactional payloads for forwarding to the payment gateway.
-
-    Returns a tuple of (clean_data, errors). If errors is non-empty, the request
-    should be rejected with a 400 response.
-    """
-
-    # Track validation issues by field name.
-    errors: dict[str, str] = {}
-
-    # Validate and normalize the amount.
-    raw_amount = payload.get("amount")
-    amount: Decimal | None = None
-    if raw_amount is None:
-        errors["amount"] = "Amount is required."
-    else:
-        try:
-            amount = Decimal(str(raw_amount))
-            if amount <= 0:
-                errors["amount"] = "Amount must be greater than zero."
-        except (InvalidOperation, ValueError):
-            errors["amount"] = "Amount must be a valid number."
-
-    # Validate the currency as an ISO-like 3-letter code.
-    raw_currency = str(payload.get("currency", "")).strip().upper()
-    if not raw_currency:
-        errors["currency"] = "Currency is required."
-    elif len(raw_currency) != 3:
-        errors["currency"] = "Currency must be a 3-letter ISO code."
-
-    # Validate the external reference for idempotent lookups.
-    raw_reference = str(payload.get("reference", "")).strip()
-    if not raw_reference:
-        errors["reference"] = "Reference is required."
-    elif len(raw_reference) > 64:
-        errors["reference"] = "Reference must be 64 characters or fewer."
-
-    # Validate the optional description for gateway display.
-    raw_description = str(payload.get("description", "")).strip()
-    if raw_description and len(raw_description) > 200:
-        errors["description"] = "Description must be 200 characters or fewer."
-
-    # Return normalized payload plus any errors.
-    return {
-        "amount": str(amount) if amount is not None else "",
-        "currency": raw_currency,
-        "reference": raw_reference,
-        "description": raw_description,
-        "metadata": payload.get("metadata", {}) if isinstance(payload.get("metadata", {}), dict) else {},
-    }, errors
+# def validate_transaction_payload(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[str, str]]:
+#     """Validate transactional payloads for forwarding to the payment gateway.
+#
+#     Returns a tuple of (clean_data, errors). If errors is non-empty, the request
+#     should be rejected with a 400 response.
+#     """
+#
+#     # Track validation issues by field name.
+#     errors: dict[str, str] = {}
+#
+#     # Validate and normalize the amount.
+#     raw_amount = payload.get("amount")
+#     amount: Decimal | None = None
+#     if raw_amount is None:
+#         errors["amount"] = "Amount is required."
+#     else:
+#         try:
+#             amount = Decimal(str(raw_amount))
+#             if amount <= 0:
+#                 errors["amount"] = "Amount must be greater than zero."
+#         except (InvalidOperation, ValueError):
+#             errors["amount"] = "Amount must be a valid number."
+#
+#     # Validate the currency as an ISO-like 3-letter code.
+#     raw_currency = str(payload.get("currency", "")).strip().upper()
+#     if not raw_currency:
+#         errors["currency"] = "Currency is required."
+#     elif len(raw_currency) != 3:
+#         errors["currency"] = "Currency must be a 3-letter ISO code."
+#
+#     # Validate the external reference for idempotent lookups.
+#     raw_reference = str(payload.get("reference", "")).strip()
+#     if not raw_reference:
+#         errors["reference"] = "Reference is required."
+#     elif len(raw_reference) > 64:
+#         errors["reference"] = "Reference must be 64 characters or fewer."
+#
+#     # Validate the optional description for gateway display.
+#     raw_description = str(payload.get("description", "")).strip()
+#     if raw_description and len(raw_description) > 200:
+#         errors["description"] = "Description must be 200 characters or fewer."
+#
+#     # Return normalized payload plus any errors.
+#     return {
+#         "amount": str(amount) if amount is not None else "",
+#         "currency": raw_currency,
+#         "reference": raw_reference,
+#         "description": raw_description,
+#         "metadata": payload.get("metadata", {}) if isinstance(payload.get("metadata", {}), dict) else {},
+#     }, errors

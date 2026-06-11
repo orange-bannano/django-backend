@@ -31,7 +31,7 @@ def list_notes(*, include_archived: bool = False, query : Q):
 
     Args:
         include_archived: If False, exclude is_archived=True records.
-        **filters: Additional ORM filter kwargs (e.g., title__icontains).
+        query: Additional ORM filter.
 
     Returns:
         QuerySet ordered by -created_at (newest first).
@@ -40,7 +40,9 @@ def list_notes(*, include_archived: bool = False, query : Q):
     # Limit the selected columns to reduce payload and DB work.
     queryset = Note.objects.all().only("id", "title", "body", "is_archived", "created_at", "updated_at")
 
-    # Apply custom filters (caller must validate allowlist to prevent SQL injection).
+    # Apply custom filters
+    # user_input = "'; DROP TABLE note; --" -->
+    # cursor.execute("SELECT * FROM note WHERE title LIKE %s", ("%'; DROP TABLE note; --%",))
     queryset = queryset.filter(query)
 
     # Exclude archived records unless explicitly requested.
