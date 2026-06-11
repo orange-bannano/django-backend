@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from django.db import transaction
+from django.db.models import Q
 
 from learning.models import Note
 
@@ -21,7 +22,7 @@ def create_note(*, title: str, body: str) -> Note:
     return note
 
 
-def list_notes(*, include_archived: bool = False, **filters):
+def list_notes(*, include_archived: bool = False, query : Q):
     """
     Return a queryset of notes with optional filtering.
 
@@ -40,8 +41,7 @@ def list_notes(*, include_archived: bool = False, **filters):
     queryset = Note.objects.all().only("id", "title", "body", "is_archived", "created_at", "updated_at")
 
     # Apply custom filters (caller must validate allowlist to prevent SQL injection).
-    if filters:
-        queryset = queryset.filter(**filters)
+    queryset = queryset.filter(query)
 
     # Exclude archived records unless explicitly requested.
     if not include_archived:

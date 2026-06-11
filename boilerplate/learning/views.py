@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, csrf_exempt
@@ -89,6 +90,7 @@ def notes_collection(request):
             return JsonResponse({"errors": errors}, status=400)
 
         # Delegate persistence to the service layer.
+        # **clean_data unpacks the dictionary into keyword arguments.
         note = create_note(**clean_data)
         return JsonResponse({"note": serialize_note(note)}, status=201)
 
@@ -97,6 +99,7 @@ def notes_collection(request):
     # ========================================================================
 
     # Extract query parameters for pagination.
+    # Eg: GET /api/notes/?limit=5&offset=10
     limit = coerce_positive_int(request.GET.get("limit"), default=10, max_value=50)
     offset = coerce_positive_int(request.GET.get("offset"), default=0, max_value=10_000)
 
@@ -110,17 +113,15 @@ def notes_collection(request):
     # Determine if archived notes should be included.
     include_archived = request.GET.get("include_archived") == "1"
 
-    # Build filter dict from query params, validating field names.
-    filters = {}
-    try:
-        # Example: ?title=Python filters to notes with that title.
-        if title_param := request.GET.get("title"):
-            # Use __icontains for case-insensitive substring search (safe: no user SQL).
-            filters["title__icontains"] = title_param
-    except ValueError as e:
-        return JsonResponse({"error": str(e)}, status=400)
+    # Example: /api/notes/?title=django&title=python
+    title_params = request.GET.getlist("title")
+    # Use __icontains for case-insensitive substring search (safe: no user SQL).
+    query = Q()
+    for keyword in title_params:
+        query |= Q(title__icontains=keyword)
 
-    # Extract and validate sort parameter (default: -created_at for newest first).
+    # https://docs.djangoproject.com/en/6.0/ref/models/expressions/#query-expressions
+    # Extract and validate sort parameter (default: -created_at for newest first, created_at for descending).
     sort_param = request.GET.get("sort", "-created_at").strip()
     try:
         sort_param = validator.validate_sort(sort_param)
@@ -130,7 +131,7 @@ def notes_collection(request):
     # END: Chunk 2 - Safe filtering and sorting.
 
     # Apply filters and sorting to the queryset, passing include_archived separately.
-    queryset = list_notes(include_archived=include_archived, **filters).order_by(sort_param)
+    queryset = list_notes(include_archived=include_archived, query=query).order_by(sort_param)
     total_count = queryset.count()
 
     # Slice the paginated subset.
@@ -190,81 +191,81 @@ def frontend_ui(request):
     return render(request, 'learning/frontend.html')
 
 
-# @require_http_methods(["POST"])
-# @csrf_exempt
-# def transactional_request(request):
-#     """Forward transactional requests with idempotency protection."""
-#
-#     # Parse and validate the incoming JSON payload.
-#     payload, error_message = parse_json_body(request)
-#     if error_message:
-#         return JsonResponse({"error": error_message}, status=400)
-#
-#     # Require an idempotency key to prevent duplicate processing.
-#     idempotency_key = str(request.headers.get("Idempotency-Key", "")).strip()
-#     if not idempotency_key:
-#         return JsonResponse({"error": "Idempotency-Key header is required."}, status=400)
-#
-#     # Validate business fields before calling downstream services.
-#     clean_data, errors = validate_transaction_payload(payload)
-#     if errors:
-#         return JsonResponse({"errors": errors}, status=400)
-#
-#     # Short-circuit if we have a cached response or a pending request.
-#     cached_record = get_cached_record(idempotency_key)
-#     if cached_record:
-#         if cached_record.get("status") == "pending":
-#             return JsonResponse(
-#                 {
-#                     "error": "Request is already pending.",
-#                     "idempotency_key": idempotency_key,
-#                 },
-#                 status=409,
-#             )
-#         if cached_record.get("status") == "completed":
-#             return JsonResponse(
-#                 cached_record.get("response", {}),
-#                 status=int(cached_record.get("status_code", 200)),
-#             )
-#
-#     # Accept-and-cache if the third-party gateway is down.
-#     if not is_third_party_healthy():
-#         store_pending_request(idempotency_key, clean_data)
-#         return JsonResponse(
-#             {
-#                 "status": "accepted",
-#                 "pending": True,
-#                 "idempotency_key": idempotency_key,
-#             },
-#             status=202,
-#         )
-#
-#     # Attempt to reconcile any earlier pending requests.
-#     reconcile_pending_requests()
-#
-#     # Forward the transaction to the third-party gateway.
-#     status_code, gateway_payload, error = send_payment(clean_data, idempotency_key)
-#     if error or status_code is None or status_code >= 500:
-#         store_pending_request(idempotency_key, clean_data)
-#         return JsonResponse(
-#             {
-#                 "status": "accepted",
-#                 "pending": True,
-#                 "idempotency_key": idempotency_key,
-#             },
-#             status=202,
-#         )
-#
-#     # Cache and return the successful response for idempotent retries.
-#     gateway_payload = gateway_payload or {}
-#     response_payload = {
-#         "status": "submitted",
-#         "idempotency_key": idempotency_key,
-#         "gateway_response": gateway_payload,
-#     }
-#
-#     store_completed_response(idempotency_key, response_payload, status_code)
-#     return JsonResponse(response_payload, status=status_code)
+@require_http_methods(["POST"])
+@csrf_exempt
+def transactional_request(request):
+    """Forward transactional requests with idempotency protection."""
+
+    # Parse and validate the incoming JSON payload.
+    payload, error_message = parse_json_body(request)
+    if error_message:
+        return JsonResponse({"error": error_message}, status=400)
+
+    # Require an idempotency key to prevent duplicate processing.
+    idempotency_key = str(request.headers.get("Idempotency-Key", "")).strip()
+    if not idempotency_key:
+        return JsonResponse({"error": "Idempotency-Key header is required."}, status=400)
+
+    # Validate business fields before calling downstream services.
+    clean_data, errors = validate_transaction_payload(payload)
+    if errors:
+        return JsonResponse({"errors": errors}, status=400)
+
+    # Short-circuit if we have a cached response or a pending request.
+    cached_record = get_cached_record(idempotency_key)
+    if cached_record:
+        if cached_record.get("status") == "pending":
+            return JsonResponse(
+                {
+                    "error": "Request is already pending.",
+                    "idempotency_key": idempotency_key,
+                },
+                status=409,
+            )
+        if cached_record.get("status") == "completed":
+            return JsonResponse(
+                cached_record.get("response", {}),
+                status=int(cached_record.get("status_code", 200)),
+            )
+
+    # Accept-and-cache if the third-party gateway is down.
+    if not is_third_party_healthy():
+        store_pending_request(idempotency_key, clean_data)
+        return JsonResponse(
+            {
+                "status": "accepted",
+                "pending": True,
+                "idempotency_key": idempotency_key,
+            },
+            status=202,
+        )
+
+    # Attempt to reconcile any earlier pending requests.
+    reconcile_pending_requests()
+
+    # Forward the transaction to the third-party gateway.
+    status_code, gateway_payload, error = send_payment(clean_data, idempotency_key)
+    if error or status_code is None or status_code >= 500:
+        store_pending_request(idempotency_key, clean_data)
+        return JsonResponse(
+            {
+                "status": "accepted",
+                "pending": True,
+                "idempotency_key": idempotency_key,
+            },
+            status=202,
+        )
+
+    # Cache and return the successful response for idempotent retries.
+    gateway_payload = gateway_payload or {}
+    response_payload = {
+        "status": "submitted",
+        "idempotency_key": idempotency_key,
+        "gateway_response": gateway_payload,
+    }
+
+    store_completed_response(idempotency_key, response_payload, status_code)
+    return JsonResponse(response_payload, status=status_code)
 
 
 # ============================================================================
