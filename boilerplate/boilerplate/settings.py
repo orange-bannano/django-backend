@@ -105,17 +105,48 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {
+            "min_length": 9,
+        },
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+]
+
+# ============================================================================
+# CHUNK 1: AUTHENTICATION BACKENDS
+# ============================================================================
+# Configure custom authentication backends for email-based and token-based auth.
+# Django queries these in order; first match wins.
+# Flow: authenticate() -> backend.authenticate() -> backend.get_user().
+
+# CHOOSE YOUR HASHING LOGIC, IN ORDER OF PRECEDENCE
+# STORED AS <algorithm>$<iterations>$<salt/seed>$<hash>
+# OTHER LOGICS ENABLES, CHECKING OF PASSWORDS WITH THAT HASHING LOGIC, BUT NEW PASSWORDS WILL BE HASHED WITH THE FIRST LOGIC IN THE LIST.
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+    "django.contrib.auth.hashers.ScryptPasswordHasher",
+]
+
+# https://docs.djangoproject.com/en/6.0/topics/auth/customizing/
+AUTHENTICATION_BACKENDS = [
+    # Allow login via email and password (instead of default username).
+    'learning.auth_backends.SimpleEmailBackend',
+    # Allow login via bearer token (API keys, JWT, etc.).
+    'learning.auth_backends.TokenBackend',
+    # Fall back to default username/password auth if custom backends fail.
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 
@@ -147,3 +178,14 @@ INTERNAL_IPS = [
     "127.0.0.1",
     # ...
 ]
+
+# Third-party gateway settings (demo defaults; override via env vars).
+THIRD_PARTY_BASE_URL = os.getenv("THIRD_PARTY_BASE_URL", "http://localhost:9000")
+THIRD_PARTY_USER = os.getenv("THIRD_PARTY_USER", "demo")
+THIRD_PARTY_PASSWORD = os.getenv("THIRD_PARTY_PASSWORD", "demo")
+THIRD_PARTY_TIMEOUT_SECONDS = int(os.getenv("THIRD_PARTY_TIMEOUT_SECONDS", "3"))
+
+# Idempotency cache windows (seconds) for transactional requests.
+TRANSACTION_PENDING_TTL_SECONDS = int(os.getenv("TRANSACTION_PENDING_TTL_SECONDS", "300"))
+TRANSACTION_COMPLETED_TTL_SECONDS = int(os.getenv("TRANSACTION_COMPLETED_TTL_SECONDS", "900"))
+TRANSACTION_REVERSE_AFTER_SECONDS = int(os.getenv("TRANSACTION_REVERSE_AFTER_SECONDS", "600"))

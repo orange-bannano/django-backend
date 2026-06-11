@@ -1,0 +1,94 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Learning API - Developer UI</title>
+    <link rel="stylesheet" href="{% static 'learning/frontend.css' %}" />
+  </head>
+  <body>
+    <!--
+      This single-page interface provides simple controls to exercise the
+      learning app endpoints without typing raw JSON each time. It is intentionally
+      explicit and well-commented for beginners.
+    -->
+
+    <header>
+      <h1>Learning API — Developer UI</h1>
+      <p>Use these controls to call the example endpoints. Responses are shown below.</p>
+    </header>
+
+    <main>
+      <!-- Authentication controls -->
+      <section id="auth">
+        <h2>Authentication</h2>
+
+        <!-- Registration form -->
+        <div class="card">
+          <h3>Register</h3>
+          <label>Email <input id="reg-email" type="email" /></label>
+          <label>Password <input id="reg-password" type="password" /></label>
+          <label>First name <input id="reg-first" type="text" /></label>
+          <button id="btn-register">Register</button>
+        </div>
+
+        <!-- Login form -->
+        <div class="card">
+          <h3>Login / Logout</h3>
+          <label>Email <input id="login-email" type="email" /></label>
+          <label>Password <input id="login-password" type="password" /></label>
+          <button id="btn-login">Login</button>
+          <button id="btn-logout">Logout</button>
+          <button id="btn-me">Get current user</button>
+        </div>
+      </section>
+
+      <!-- Notes controls -->
+      <section id="notes">
+        <h2>Notes</h2>
+
+        <div class="card">
+          <h3>Create Note</h3>
+          <label>Title <input id="note-title" type="text" /></label>
+          <label>Body <textarea id="note-body"></textarea></label>
+          <button id="btn-create-note">Create</button>
+        </div>
+
+        <div class="card">
+          <h3>List & Filter</h3>
+          <label>Title contains <input id="filter-title" type="text" /></label>
+          <label>Include archived <input id="filter-archived" type="checkbox" /></label>
+          <label>Sort <select id="filter-sort"><option value="-created_at">Newest</option><option value="created_at">Oldest</option><option value="title">Title</option></select></label>
+          <label>Limit <input id="filter-limit" type="number" value="10" min="1" max="50" /></label>
+          <label>Offset <input id="filter-offset" type="number" value="0" min="0" /></label>
+          <button id="btn-list-notes">List Notes</button>
+        </div>
+
+        <div class="card">
+          <h3>Cursor Pagination</h3>
+          <button id="btn-list-cursor">Load next (cursor)</button>
+        </div>
+
+        <div class="card">
+          <h3>Archive Note</h3>
+          <label>Note ID <input id="archive-id" type="number" /></label>
+          <button id="btn-archive">Archive</button>
+        </div>
+      </section>
+
+      <!-- Response / log area -->
+      <section id="responses">
+        <h2>Responses</h2>
+        <pre id="log" class="log"></pre>
+      </section>
+    </main>
+
+    <footer>
+      <small>Developer UI — for local learning only. CSRF-protected POSTs use the csrftoken cookie.</small>
+    </footer>
+
+    <script src="{% static 'learning/frontend.js' %}"></script>
+  </body>
+</html>
+

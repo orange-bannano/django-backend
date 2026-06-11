@@ -21,17 +21,33 @@ def create_note(*, title: str, body: str) -> Note:
     return note
 
 
-def list_notes(*, include_archived: bool = False):
-    """Return a queryset of notes in a deterministic order."""
+def list_notes(*, include_archived: bool = False, **filters):
+    """
+    Return a queryset of notes with optional filtering.
+
+    Chunk 2: Supports filtering via kwargs (e.g., title__icontains="python").
+    Filters are applied directly; callers must validate allowlist before calling.
+
+    Args:
+        include_archived: If False, exclude is_archived=True records.
+        **filters: Additional ORM filter kwargs (e.g., title__icontains).
+
+    Returns:
+        QuerySet ordered by -created_at (newest first).
+    """
 
     # Limit the selected columns to reduce payload and DB work.
     queryset = Note.objects.all().only("id", "title", "body", "is_archived", "created_at", "updated_at")
+
+    # Apply custom filters (caller must validate allowlist to prevent SQL injection).
+    if filters:
+        queryset = queryset.filter(**filters)
 
     # Exclude archived records unless explicitly requested.
     if not include_archived:
         queryset = queryset.filter(is_archived=False)
 
-    return queryset.order_by("-created_at")
+    return queryset
 
 
 def archive_note(*, note_id: int) -> Note:

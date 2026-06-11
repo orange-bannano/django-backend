@@ -8,7 +8,7 @@ class Note(models.Model):
     """A minimal model used to demonstrate CRUD, validation, and consistency."""
 
     # Core content fields used by the JSON API.
-    title = models.CharField(max_length=120)
+    title = models.CharField(max_length=500)
     body = models.TextField(blank=True)
     # Archive flag lets us keep records without deleting.
     is_archived = models.BooleanField(default=False)
