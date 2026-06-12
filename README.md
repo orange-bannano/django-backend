@@ -30,14 +30,6 @@ transactional writes with a tiny Notes API.
 - `GET /api/notes/` to list notes with pagination.
 - `POST /api/notes/` to create a note (requires CSRF token).
 - `POST /api/notes/<id>/archive/` to archive a note (requires CSRF token).
-- `POST /api/transactions/` to forward transactional requests with idempotency.
-
-### Transactional Idempotency Demo
-Send `POST /api/transactions/` with JSON and an `Idempotency-Key` header. When the
-third-party gateway is unhealthy, the request is accepted and cached; duplicate
-requests with the same key are rejected while the cache is active.
-
-### Refer service.py for CRUD logic.
 
 ### Quickstart (from repo root)
 ```powershell
