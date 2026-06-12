@@ -1,8 +1,31 @@
+## For business logic:
+## [VIEW](boilerplate/learning/views.py)
+## [SETTINGS](boilerplate/boilerplate/settings.py)
+
 # django-backend
 
-This repository now includes a compact backend web development knowledge base focused on practical concepts, definitions, and secure implementation habits.
+This repository is part of the Internship project @ [Samaro AI](https://samaro.ai/)
+It includes a compact backend web development knowledge base & code focused on best practices and habits to ensure efficency and security.
+Refer the [progress sheet](https://docs.google.com/spreadsheets/d/1VsqfiaUyQ_vsXXupU7ZZjFJQfqHpv41TX4E4Je0PoqM/edit?gid=0#gid=0) for currents status and milestones of this project.
 
-## Documentation Overview
+## Learning App Quickstart
+
+The `boilerplate` folder contains a minimal Django project with a `learning` app.
+It demonstrates the practical example of critcical backend web service concepts (discussed below).
+
+## The API usage details of the endpoint view within this project can be found [here](docs/apiDoc.md)
+
+### Quickstart (from repo root)
+```powershell
+cd C:\Users\praty\PycharmProjects\django-backend\boilerplate
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r ..\requirements.txt
+python manage.py migrate
+python manage.py runserver
+```
+
+## Theory documentation Overview
 
 ### 1. [HTTP and Web Backend Basics](docs/01-http-and-web-basics.md)
 Covers HTTP communication, request/response structure, methods such as GET/POST/PUT/PATCH/DELETE, idempotency, status codes, headers, and content negotiation.
@@ -18,37 +41,3 @@ Introduces transactions, ACID guarantees, concurrency concerns, asynchronous pro
 
 ### 5. [Backend Security Basics](docs/05-security-basics.md)
 Summarizes JWT, refresh tokens, session cookies including JSESSIONID, CSRF tokens, throttling, rate limiting, security headers, common injection vulnerabilities, and authentication hardening.
-
-## Learning App Quickstart
-
-The `boilerplate` folder contains a minimal Django project with a `learning` app.
-It demonstrates safe JSON handling, CSRF-protected POSTs, model validation, and
-transactional writes with a tiny Notes API.
-
-### Core Endpoints
-- `GET /api/health/` for a simple health check.
-- `GET /api/notes/` to list notes with pagination.
-- `POST /api/notes/` to create a note (requires CSRF token).
-- `POST /api/notes/<id>/archive/` to archive a note (requires CSRF token).
-
-### Quickstart (from repo root)
-```powershell
-cd C:\Users\praty\PycharmProjects\django-backend\boilerplate
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -r ..\requirements.txt
-python manage.py migrate
-python manage.py runserver
-```
-
-## Suggested Reading Order
-
-1. Start with HTTP basics.
-2. Move to REST and API design.
-3. Understand architecture patterns used in backend frameworks such as Django.
-4. Learn data consistency and async processing.
-5. Finish with core security practices and common vulnerabilities.
-
-## Purpose
-
-These documents are meant to give a structured reference for backend fundamentals and common secure-development practices that are useful across Django and general web backend work.
