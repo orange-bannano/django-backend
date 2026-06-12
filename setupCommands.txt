@@ -15,7 +15,7 @@ mysql -h 127.0.0.1 -P 3306 -u root -p main_db
 #use sudo if auth errors
 #By default, MySQL only listens to local requests inside the WSL environment. Need to tell MySQL to listen on all network interfaces
 sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
-bind-address = 0.0.0.
+bind-address = 0.0.0.0
 sudo systemctl restart MySQL
 
 #XSERVER & XTERM (FORWARD GUI ELEMENTS AS CLIENT TO XSERVER, WHICH STREAMS TO WINDOWS DESKTOP)

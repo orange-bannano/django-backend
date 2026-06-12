@@ -154,6 +154,6 @@ PERMISSIONS_ADMIN_ONLY = [is_authenticated, is_staff]
 PERMISSIONS_OWNER_ONLY = [is_authenticated]
 """Allow owner; object-level check in view. Use with (is_owner, 'obj') in view."""
 
-PERMISSIONS_EDITOR_GROUP = [is_authenticated, lambda u: has_group(u, "editors")]
+PERMISSIONS_EDITOR_GROUP = [is_authenticated, lambda u: has_group(u, "Editor")]
 """Allow members of the 'editors' group."""
 

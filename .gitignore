@@ -155,6 +155,7 @@ activemq-data/
 .env
 .envrc
 .venv
+.djangovenv
 env/
 venv/
 ENV/

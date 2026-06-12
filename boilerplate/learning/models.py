@@ -1,10 +1,8 @@
 """Database models used by the learning app."""
-from django.contrib.auth.models import User
 # A model is the single, definitive source of information about your data.
 # It contains the essential fields and behaviors of the data you’re storing. Django follows the DRY Principle.
+from django.contrib.auth.models import User
 from django.db import models
-
-from boilerplate import settings
 
 
 class Note(models.Model):
@@ -25,19 +23,51 @@ class Note(models.Model):
     # while migrate executes those files to modify your actual live database table (modifies schema, creates or updates tables).
     # use 'python manage.py sqlmigrate polls 0001' to see SQL commands django gonna use, useful to check before migrating critical database.
 
-    owner = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="owned_notes",
-    )
-
-    shared_with = models.ManyToManyField(
-        User,
-        related_name="shared_notes",
-        blank=True,
-    )
-
-
     def __str__(self) -> str:
         # Human-readable representation for admin and logs.
         return f"Note(id={self.pk}, title={self.title!r})"
+
+
+class NoteMembership(models.Model):
+    """Link a user to a note and capture ownership plus effective role."""
+
+    ROLE_EMPLOYEE = "Employee"
+    ROLE_MANAGER = "Manager"
+    ROLE_ADMIN = "Admin"
+    ROLE_CHOICES = [
+        (ROLE_EMPLOYEE, "Employee"),
+        (ROLE_MANAGER, "Manager"),
+        (ROLE_ADMIN, "Admin"),
+    ]
+
+    note = models.ForeignKey(
+        Note,
+        on_delete=models.CASCADE,
+        related_name="memberships",
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="note_memberships",
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default=ROLE_EMPLOYEE,
+    )
+    is_owner = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["note", "user"],
+                name="unique_note_membership",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return (
+            f"NoteMembership(note_id={self.note_id}, user_id={self.user_id}, "
+            f"role={self.role!r}, is_owner={self.is_owner})"
+        )

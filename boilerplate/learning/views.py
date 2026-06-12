@@ -16,10 +16,11 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from learning.models import Note
+from learning.models import Note, NoteMembership
 from learning.permissions import is_authenticated
 from learning.serializers import AllowlistValidator
-from learning.services import archive_note, create_note, list_notes
+from learning.services import archive_note, create_note, list_notes, resolve_user_role, filter_notes_for_user, \
+    can_modify_note, can_delete_note
 # from learning.transactions import (
 #     get_cached_record,
 #     is_third_party_healthy,
@@ -37,8 +38,17 @@ User = get_user_model()
 # CHUNK 0: BASIC CRUD AND CONSISTENCY
 # ============================================================================
 
-def serialize_note(note: Note) -> dict[str, str | int | bool]:
+def serialize_note(note: Note) -> dict:
     """Convert a Note model instance into JSON-serializable primitives."""
+
+    memberships = list(
+        note.memberships.select_related("user")
+    )
+
+    owner = next(
+        (m for m in memberships if m.is_owner),
+        None,
+    )
 
     # Flatten model fields into JSON-safe primitives.
     return {
@@ -46,6 +56,17 @@ def serialize_note(note: Note) -> dict[str, str | int | bool]:
         "title": note.title,
         "body": note.body,
         "is_archived": note.is_archived,
+        "owner": {
+            "id": owner.user_id,
+        } if owner else None,
+        "members": [
+            {
+                "user_id": membership.user_id,
+                "email": membership.user.email,
+                "role": membership.role,
+            }
+            for membership in memberships
+        ],
         "created_at": note.created_at.isoformat(),
         "updated_at": note.updated_at.isoformat(),
     }
@@ -79,13 +100,15 @@ def say_hello(request):
 
 
 @csrf_exempt
-@require_http_methods(["GET", "POST"])
+@require_http_methods(["GET", "POST", "PUT", "DELETE"])
 def notes_collection(request):
     """List notes or create a new note in a single endpoint.
 
     CHUNK 0:
-        GET:  List all non-archived notes with pagination.
-        POST: Create a new note with validation.
+        GET:    List notes the current user can access, with pagination.
+        POST:   Create a new note with validation.
+        PUT:    Update a note by `note_id` in the JSON body.
+        DELETE: Delete a note by `note_id` in the JSON body (admin only).
 
     CHUNK 2:
         GET:  Supports filtering (title, is_archived) and sorting (title, created_at).
@@ -99,7 +122,22 @@ def notes_collection(request):
             "title": "Django ORM basics",
             "body": "Review select_related and prefetch_related."
         }
+
+        PUT /api/notes/
+        {
+            "note_id": 12,
+            "title": "Updated title",
+            "body": "Updated body"
+        }
+
+        DELETE /api/notes/
+        {
+            "note_id": 12
+        }
     """
+
+    if not is_authenticated(request.user):
+        return JsonResponse({"error": "Authentication required."}, status=401)
 
     # ========================================================================
     # CHUNK 0 + 2: WRITE PATH - Create a new note with validation
@@ -117,8 +155,47 @@ def notes_collection(request):
 
         # Delegate persistence to the service layer.
         # **clean_data unpacks the dictionary into keyword arguments.
-        note = create_note(**clean_data)
+        note = create_note(owner=request.user, **clean_data)
         return JsonResponse({"note": serialize_note(note)}, status=201)
+
+    if request.method in {"PUT", "DELETE"}:
+        payload, error_message = parse_json_body(request)
+        if error_message:
+            return JsonResponse({"error": error_message}, status=400)
+
+        note_id = payload.get("note_id")
+        try:
+            note_id = int(note_id)
+        except (TypeError, ValueError):
+            return JsonResponse({"error": "note_id must be a valid integer."}, status=400)
+
+        try:
+            note = Note.objects.get(pk=note_id)
+        except Note.DoesNotExist:
+            return JsonResponse({"error": "Note not found."}, status=404)
+
+        if request.method == "DELETE":
+            if not can_delete_note(request.user):
+                return JsonResponse({"error": "Admin access required."}, status=403)
+            note.delete()
+            return JsonResponse({"status": "deleted", "note_id": note_id})
+
+        if not can_modify_note(request.user, note):
+            return JsonResponse({"error": "You do not have permission to modify this note."}, status=403)
+
+        merged_payload = {
+            "title": payload.get("title", note.title),
+            "body": payload.get("body", note.body),
+        }
+        clean_data, errors = validate_note_payload(merged_payload)
+        if errors:
+            return JsonResponse({"errors": errors}, status=400)
+
+        note.title = clean_data["title"]
+        note.body = clean_data["body"]
+        note.full_clean()
+        note.save(update_fields=["title", "body", "updated_at"])
+        return JsonResponse({"note": serialize_note(note)})
 
     # ========================================================================
     # CHUNK 2: READ PATH - List with filtering and sorting support
@@ -157,7 +234,10 @@ def notes_collection(request):
     # END: Chunk 2 - Safe filtering and sorting.
 
     # Apply filters and sorting to the queryset, passing include_archived separately.
-    queryset = list_notes(include_archived=include_archived, query=query).order_by(sort_param)
+    queryset = filter_notes_for_user(
+        list_notes(include_archived=include_archived, query=query),
+        request.user,
+    ).order_by(sort_param)
     total_count = queryset.count()
 
     # Slice the paginated subset.
@@ -324,12 +404,12 @@ def current_user_view(request):
         Auth: session cookie from login
     """
 
-    # Check that the user is authenticated.
-    if not is_authenticated(request.user):
-        return JsonResponse(
-            {"error": "Authentication required."},
-            status=401,
-        )
+    # # Check that the user is authenticated.
+    # if not is_authenticated(request.user):
+    #     return JsonResponse(
+    #         {"error": "Authentication required."},
+    #         status=401,
+    #     )
 
     return JsonResponse({
         "user": {

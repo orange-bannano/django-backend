@@ -179,13 +179,13 @@ INTERNAL_IPS = [
     # ...
 ]
 
-# Third-party gateway settings (demo defaults; override via env vars).
-THIRD_PARTY_BASE_URL = os.getenv("THIRD_PARTY_BASE_URL", "http://localhost:9000")
-THIRD_PARTY_USER = os.getenv("THIRD_PARTY_USER", "demo")
-THIRD_PARTY_PASSWORD = os.getenv("THIRD_PARTY_PASSWORD", "demo")
-THIRD_PARTY_TIMEOUT_SECONDS = int(os.getenv("THIRD_PARTY_TIMEOUT_SECONDS", "3"))
-
-# Idempotency cache windows (seconds) for transactional requests.
-TRANSACTION_PENDING_TTL_SECONDS = int(os.getenv("TRANSACTION_PENDING_TTL_SECONDS", "300"))
-TRANSACTION_COMPLETED_TTL_SECONDS = int(os.getenv("TRANSACTION_COMPLETED_TTL_SECONDS", "900"))
-TRANSACTION_REVERSE_AFTER_SECONDS = int(os.getenv("TRANSACTION_REVERSE_AFTER_SECONDS", "600"))
+# # Third-party gateway settings (demo defaults; override via env vars).
+# THIRD_PARTY_BASE_URL = os.getenv("THIRD_PARTY_BASE_URL", "http://localhost:9000")
+# THIRD_PARTY_USER = os.getenv("THIRD_PARTY_USER", "demo")
+# THIRD_PARTY_PASSWORD = os.getenv("THIRD_PARTY_PASSWORD", "demo")
+# THIRD_PARTY_TIMEOUT_SECONDS = int(os.getenv("THIRD_PARTY_TIMEOUT_SECONDS", "3"))
+#
+# # Idempotency cache windows (seconds) for transactional requests.
+# TRANSACTION_PENDING_TTL_SECONDS = int(os.getenv("TRANSACTION_PENDING_TTL_SECONDS", "300"))
+# TRANSACTION_COMPLETED_TTL_SECONDS = int(os.getenv("TRANSACTION_COMPLETED_TTL_SECONDS", "900"))
+# TRANSACTION_REVERSE_AFTER_SECONDS = int(os.getenv("TRANSACTION_REVERSE_AFTER_SECONDS", "600"))
