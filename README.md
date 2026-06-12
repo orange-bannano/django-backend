@@ -1,6 +1,6 @@
-For business logic:
-[VIEW](boilerplate/learning/views.py)
-[SETTINGS](boilerplate/boilerplate/settings.py)
+## For business logic:
+## [VIEW](boilerplate/learning/views.py)
+## [SETTINGS](boilerplate/boilerplate/settings.py)
 
 # django-backend
 
@@ -13,7 +13,7 @@ Refer the [progress sheet](https://docs.google.com/spreadsheets/d/1VsqfiaUyQ_vsX
 The `boilerplate` folder contains a minimal Django project with a `learning` app.
 It demonstrates the practical example of critcical backend web service concepts (discussed below).
 
-# The API usage details of the endpoint view within this project can be found [here](docs/apiDoc)
+## The API usage details of the endpoint view within this project can be found [here](docs/apiDoc.md)
 
 ### Quickstart (from repo root)
 ```powershell
