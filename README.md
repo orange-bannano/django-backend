@@ -1,3 +1,7 @@
+For business logic:
+[VIEW](boilerplate/learning/views.py)
+[SETTINGS](boilerplate/boilerplate/settings.py)
+
 # django-backend
 
 This repository now includes a compact backend web development knowledge base focused on practical concepts, definitions, and secure implementation habits.
