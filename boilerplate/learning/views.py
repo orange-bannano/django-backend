@@ -5,16 +5,17 @@ to helper modules so each concept is easy to copy elsewhere.
 """
 
 from __future__ import annotations
-
+from django.core.cache import cache
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Group, Permission
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django_ratelimit.decorators import ratelimit
 
 from learning.models import Note, NoteMembership
 from learning.permissions import is_authenticated
@@ -33,6 +34,24 @@ from learning.utils import coerce_positive_int, paginate_queryset, parse_json_bo
 from learning.validators import validate_note_payload #, validate_transaction_payload
 
 User = get_user_model()
+
+def rate_limit_ip(request):
+    ip = request.META.get("REMOTE_ADDR")
+    key = f"rate_limit:{ip}"
+    count = cache.get(key, 0)
+    if count >= 10:
+        return JsonResponse({"error": "Rate limit exceeded"},status=429,)
+    cache.set(key,count + 1,timeout=60,)
+    return None
+def rate_limit_user(request):
+    if not request.user.is_authenticated:
+        return None
+    key = f"user_limit:{request.user.id}"
+    count = cache.get(key, 0)
+    if count >= 100:
+        return JsonResponse({"error": "Too many requests"},status=429,)
+    cache.set(key,count + 1,timeout=3600,)
+    return None
 
 # ============================================================================
 # CHUNK 0: BASIC CRUD AND CONSISTENCY
@@ -98,7 +117,8 @@ def say_hello(request):
     """
     return render(request, 'hello.html')
 
-
+# 4 requests per minute per IP address or user, key = "user"
+@ratelimit(key="ip", rate="4/m", method="POST", block=True)
 @csrf_exempt
 @require_http_methods(["GET", "POST", "PUT", "DELETE"])
 def notes_collection(request):
@@ -156,7 +176,33 @@ def notes_collection(request):
         # Delegate persistence to the service layer.
         # **clean_data unpacks the dictionary into keyword arguments.
         note = create_note(owner=request.user, **clean_data)
-        return JsonResponse({"note": serialize_note(note)}, status=201)
+        # return JsonResponse({"note": serialize_note(note)}, status=201)
+
+        # When concatenation is used vulnerability persists
+        html = f"""
+        <html>
+        <body>
+            <h1>Note Created</h1>
+
+            <h2>{note.title}</h2>
+
+            <div>
+                {note.body}
+            </div>
+        </body>
+        </html>
+        """
+        return HttpResponse(html, status=201)
+
+        # template variables are auto-escaped
+        # return render(
+        #     request,
+        #     "note_created.html",
+        #     {
+        #         "note": note,
+        #     },
+        #     status=201,
+        # )
 
     if request.method in {"PUT", "DELETE"}:
         payload, error_message = parse_json_body(request)
@@ -317,6 +363,9 @@ def login_view(request):
             "password": "secret123"
         }
     """
+    resp = rate_limit_ip(request)
+    if resp:
+        return resp
 
     # Parse JSON input.
     payload, error_message = parse_json_body(request)
