@@ -20,7 +20,8 @@ from learning.models import Note, NoteMembership
 from learning.permissions import is_authenticated
 from learning.serializers import AllowlistValidator
 from learning.services import archive_note, create_note, list_notes, resolve_user_role, filter_notes_for_user, \
-    can_modify_note, can_delete_note, rate_limit_ip
+    can_modify_note, can_delete_note, rate_limit_ip, check_request_idempotency, mark_request_pending, \
+    store_idempotent_response, is_idempotency_enabled, set_idempotency
 # from learning.transactions import (
 #     get_cached_record,
 #     is_third_party_healthy,
@@ -92,6 +93,29 @@ def notes_collection(request):
     if not is_authenticated(request.user):
         return JsonResponse({"error": "Authentication required."}, status=401)
 
+    ### idempotency logic STARTS ###
+    idempotency_cache_key = None
+    idempotency_key = ""
+    if request.method in {"POST", "PUT", "DELETE"}:
+        # retrives idem key from http header
+        idempotency_key = str(request.headers.get("Idempotency-Key", "")).strip()
+        # creates cache key from idem key, cache key is matched to get record and then converted in response
+        idempotency_cache_key, cached_response = check_request_idempotency(request)
+        # if an older cache key exist then, response from older duplicate request is sent or pending
+        if cached_response is not None:
+            return cached_response
+        # if new key, then marked as pending
+        mark_request_pending(idempotency_cache_key, idempotency_key)
+
+    # store the response in record corresponding to current cache key / idem key and return the desired response
+    # mark as complete, flip the "pending status switch"
+    def finalize_idempotent(response):
+        if idempotency_cache_key:
+            store_idempotent_response(idempotency_cache_key, response, idempotency_key)
+        return response
+
+    ### idempotency logic ENDS ###
+
     # ========================================================================
     # CHUNK 0 + 2: WRITE PATH - Create a new note with validation
     # ========================================================================
@@ -99,12 +123,12 @@ def notes_collection(request):
         # Parse JSON input with size guards.
         payload, error_message = parse_json_body(request)
         if error_message:
-            return JsonResponse({"error": error_message}, status=400)
+            return finalize_idempotent(JsonResponse({"error": error_message}, status=400))
 
         # Validate the payload structure and content before database write.
         clean_data, errors = validate_note_payload(payload)
         if errors:
-            return JsonResponse({"errors": errors}, status=400)
+            return finalize_idempotent(JsonResponse({"errors": errors}, status=400))
 
         # Delegate persistence to the service layer.
         # **clean_data unpacks the dictionary into keyword arguments.
@@ -125,7 +149,7 @@ def notes_collection(request):
         </body>
         </html>
         """
-        return HttpResponse(html, status=201)
+        return finalize_idempotent(HttpResponse(html, status=201))
 
         # template variables are auto-escaped
         # return render(
@@ -140,27 +164,29 @@ def notes_collection(request):
     if request.method in {"PUT", "DELETE"}:
         payload, error_message = parse_json_body(request)
         if error_message:
-            return JsonResponse({"error": error_message}, status=400)
+            return finalize_idempotent(JsonResponse({"error": error_message}, status=400))
 
         note_id = payload.get("note_id")
         try:
             note_id = int(note_id)
         except (TypeError, ValueError):
-            return JsonResponse({"error": "note_id must be a valid integer."}, status=400)
+            return finalize_idempotent(JsonResponse({"error": "note_id must be a valid integer."}, status=400))
 
         try:
             note = Note.objects.get(pk=note_id)
         except Note.DoesNotExist:
-            return JsonResponse({"error": "Note not found."}, status=404)
+            return finalize_idempotent(JsonResponse({"error": "Note not found."}, status=404))
 
         if request.method == "DELETE":
             if not can_delete_note(request.user):
-                return JsonResponse({"error": "Admin access required."}, status=403)
+                return finalize_idempotent(JsonResponse({"error": "Admin access required."}, status=403))
             note.delete()
-            return JsonResponse({"status": "deleted", "note_id": note_id})
+            return finalize_idempotent(JsonResponse({"status": "deleted", "note_id": note_id}))
 
         if not can_modify_note(request.user, note):
-            return JsonResponse({"error": "You do not have permission to modify this note."}, status=403)
+            return finalize_idempotent(
+                JsonResponse({"error": "You do not have permission to modify this note."}, status=403)
+            )
 
         merged_payload = {
             "title": payload.get("title", note.title),
@@ -168,13 +194,13 @@ def notes_collection(request):
         }
         clean_data, errors = validate_note_payload(merged_payload)
         if errors:
-            return JsonResponse({"errors": errors}, status=400)
+            return finalize_idempotent(JsonResponse({"errors": errors}, status=400))
 
         note.title = clean_data["title"]
         note.body = clean_data["body"]
         note.full_clean()
         note.save(update_fields=["title", "body", "updated_at"])
-        return JsonResponse({"note": serialize_note(note)})
+        return finalize_idempotent(JsonResponse({"note": serialize_note(note)}))
 
     # ========================================================================
     # CHUNK 2: READ PATH - List with filtering and sorting support
@@ -248,10 +274,56 @@ def archive_note_view(request, note_id: int):
         Body: none
     """
 
+    idempotency_key = str(request.headers.get("Idempotency-Key", "")).strip()
+    idempotency_cache_key, cached_response = check_request_idempotency(request)
+    if cached_response is not None:
+        return cached_response
+    mark_request_pending(idempotency_cache_key, idempotency_key)
+
     # Keep the database lookup in the service layer; handle missing rows here.
     try:
         note = archive_note(note_id=note_id)
     except Note.DoesNotExist:
-        return JsonResponse({"error": "Note not found."}, status=404)
+        response = JsonResponse({"error": "Note not found."}, status=404)
+        store_idempotent_response(idempotency_cache_key, response, idempotency_key)
+        return response
 
-    return JsonResponse({"note": serialize_note(note)})
+    response = JsonResponse({"note": serialize_note(note)})
+    store_idempotent_response(idempotency_cache_key, response, idempotency_key)
+    return response
+
+
+@csrf_exempt
+@require_http_methods(["GET", "POST"])
+def toggle_idempotency_view(request):
+    """Read or update the idempotency feature flag.
+
+    GET:
+        Return the current enabled state.
+
+    POST:
+        Toggle the current state or set an explicit state with JSON body:
+        {"enabled": true}
+    """
+
+    # if not is_authenticated(request.user):
+    #     return JsonResponse({"error": "Authentication required."}, status=401)
+    #
+    # if resolve_user_role(request.user) != NoteMembership.ROLE_ADMIN:
+    #     return JsonResponse({"error": "Admin access required."}, status=403)
+
+    if request.method == "GET":
+        return JsonResponse({"idempotency_enabled": is_idempotency_enabled()})
+
+    payload, error_message = parse_json_body(request)
+    if error_message:
+        return JsonResponse({"error": error_message}, status=400)
+
+    enabled = payload.get("enabled")
+    if enabled is None:
+        enabled = not is_idempotency_enabled()
+    elif not isinstance(enabled, bool):
+        return JsonResponse({"error": "enabled must be a boolean."}, status=400)
+
+    new_state = set_idempotency(enabled)
+    return JsonResponse({"idempotency_enabled": new_state})

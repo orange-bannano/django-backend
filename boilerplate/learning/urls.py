@@ -18,6 +18,8 @@ urlpatterns = [
     path("notes/", views.notes_collection, name="notes-collection"),
     # Archive action for a single note.
     path("notes/<int:note_id>/archive/", views.archive_note_view, name="note-archive"),
+    # Toggle the cache-backed idempotency feature flag.
+    path("idempotency/", views.toggle_idempotency_view, name="toggle-idempotency"),
     # # Transactional forwarding endpoint to demonstrate idempotency.
     # path("transactions/", views.transactional_request, name="transactional-request"),
     # Say hello page.
