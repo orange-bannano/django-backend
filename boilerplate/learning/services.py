@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
+from django.http import JsonResponse
 
 from learning.models import Note, NoteMembership
 
@@ -122,3 +124,21 @@ def archive_note(*, note_id: int) -> Note:
         note.save(update_fields=["is_archived", "updated_at"])
 
     return note
+
+def rate_limit_ip(request):
+    ip = request.META.get("REMOTE_ADDR")
+    key = f"rate_limit:{ip}"
+    count = cache.get(key, 0)
+    if count >= 10:
+        return JsonResponse({"error": "Rate limit exceeded"},status=429,)
+    cache.set(key,count + 1,timeout=60,)
+    return None
+def rate_limit_user(request):
+    if not request.user.is_authenticated:
+        return None
+    key = f"user_limit:{request.user.id}"
+    count = cache.get(key, 0)
+    if count >= 100:
+        return JsonResponse({"error": "Too many requests"},status=429,)
+    cache.set(key,count + 1,timeout=3600,)
+    return None

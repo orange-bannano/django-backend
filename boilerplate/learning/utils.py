@@ -6,6 +6,8 @@ import json
 from json import JSONDecodeError
 from typing import Any, Iterable
 
+from learning.models import Note
+
 
 def parse_json_body(request, *, max_bytes: int = 10_000) -> tuple[dict[str, Any] | None, str | None]:
     """Parse a JSON request body with simple size and type guards."""
@@ -73,3 +75,36 @@ def paginate_queryset(
         "previous_offset": previous_offset,
     }
     # using the metadata, next page can be identified via next_offset and previous page by previous_offset, which become the new offset for new page while navigating
+
+def serialize_note(note: Note) -> dict:
+    """Convert a Note model instance into JSON-serializable primitives."""
+
+    memberships = list(
+        note.memberships.select_related("user")
+    )
+
+    owner = next(
+        (m for m in memberships if m.is_owner),
+        None,
+    )
+
+    # Flatten model fields into JSON-safe primitives.
+    return {
+        "id": note.id,
+        "title": note.title,
+        "body": note.body,
+        "is_archived": note.is_archived,
+        "owner": {
+            "id": owner.user_id,
+        } if owner else None,
+        "members": [
+            {
+                "user_id": membership.user_id,
+                "email": membership.user.email,
+                "role": membership.role,
+            }
+            for membership in memberships
+        ],
+        "created_at": note.created_at.isoformat(),
+        "updated_at": note.updated_at.isoformat(),
+    }
