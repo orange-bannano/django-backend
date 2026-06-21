@@ -2,11 +2,15 @@ from __future__ import annotations
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Group, Permission
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render
 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+
+from boilerplate import settings
 from learning.services import rate_limit_ip
 from learning.utils import parse_json_body
 
@@ -16,6 +20,42 @@ User = get_user_model()
 # ============================================================================
 # CHUNK 1: AUTHENTICATION AND AUTHORIZATION
 # ============================================================================
+
+### USER STATUS MARKER STARTS, NO FUNCTIONAL INFLUENCE ###
+
+# LOGGED_IN_USER_TTL_SECONDS = 86400
+
+@require_http_methods(["GET"])
+def auth_frontend_view(request):
+    """Render a small UI for login and account operations."""
+
+    return render(request, "learning/auth_frontend.html")
+
+
+def _logged_in_cache_key(user_id: int) -> str:
+    return f"auth:logged-in:{user_id}"
+
+
+def mark_user_logged_in(user) -> None:
+    cache.set(_logged_in_cache_key(user.id), True, timeout=settings.SESSION_COOKIE_AGE)
+
+
+def mark_user_logged_out(user) -> None:
+    cache.delete(_logged_in_cache_key(user.id))
+
+
+def is_user_logged_in(user) -> bool:
+    return bool(cache.get(_logged_in_cache_key(user.id), False))
+
+
+def serialize_registered_user(user) -> dict:
+    return {
+        "username": user.username,
+        "is_active": user.is_active,
+        "is_logged_in": is_user_logged_in(user),
+    }
+
+### USER STATUS MARKER ENDS###
 
 def is_authenticated_or_error(user):
     if user.is_authenticated:
@@ -85,6 +125,7 @@ def login_view(request):
     # Create a session cookie for the authenticated user.
     # This sets request.user and persists across future requests in which specified backend is used to fetch user details.
     login(request, user, backend='learning.auth_backends.SimpleEmailBackend')
+    mark_user_logged_in(user)
 
     # Return user info (safe: no sensitive data like passwords).
     return JsonResponse({
@@ -115,8 +156,10 @@ def logout_view(request):
         Auth: session cookie from login
     """
 
+    user = request.user
     # Clear the session for this user.
     logout(request)
+    mark_user_logged_out(user)
 
     return JsonResponse({"status": "logged out"})
 
@@ -175,6 +218,7 @@ def delete_own_account(request):
 
     user = request.user
     logout(request)
+    mark_user_logged_out(user)
 
     # Delete the user record from the database
     user.delete()
@@ -206,6 +250,7 @@ def update_password(request):
     user.set_password(new_password)
     user.save()
     logout(request)
+    mark_user_logged_out(user)
     return JsonResponse({"status": "password updated, please log in again"})
 
 @user_passes_test(is_authenticated_or_error)
@@ -226,6 +271,7 @@ def deactivate_own_account(request):
     user.is_active = False
     user.save()
     logout(request)
+    mark_user_logged_out(user)
     return JsonResponse({"status": "soft deleted, logged out"})
 
 @user_passes_test(is_admin)
@@ -271,7 +317,7 @@ def create_user_view(request):
     email = payload.get("email", "").strip()
     password = payload.get("password", "").strip()
     first_name = payload.get("first_name", "").strip()
-    role = payload.get("role", "Viewer").strip()
+    role = payload.get("role", "Employee").strip()
 
     # Guard against missing required fields.
     if not email or not password:
@@ -320,6 +366,7 @@ def create_user_view(request):
 
     # Automatically log in the new user using the default backend.
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+    mark_user_logged_in(user)
 
     return JsonResponse({
         "user": {
@@ -328,6 +375,18 @@ def create_user_view(request):
             "first_name": user.first_name,
         }
     }, status=201)
+
+
+@require_http_methods(["GET"])
+def registered_users_view(request):
+    """Return registered users with active and logged-in status."""
+
+    users = User.objects.order_by("username").only("id", "username", "is_active")
+    return JsonResponse(
+        {
+            "users": [serialize_registered_user(user) for user in users],
+        }
+    )
 
 def serialize_group(group: Group) -> dict:
     return {
@@ -338,6 +397,18 @@ def serialize_group(group: Group) -> dict:
             for permission in group.permissions.all()
         ],
     }
+
+
+@require_http_methods(["GET"])
+def groups_view(request):
+    """Return all groups and their permissions."""
+
+    groups = Group.objects.order_by("name").prefetch_related("permissions")
+    return JsonResponse(
+        {
+            "groups": [serialize_group(group) for group in groups],
+        }
+    )
 
 from django.contrib.auth.models import Group, Permission
 from django.db import IntegrityError

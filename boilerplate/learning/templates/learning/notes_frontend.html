@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes Console</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f4f7fb;
+            --panel: #ffffff;
+            --border: #d7dfeb;
+            --text: #16202c;
+            --muted: #596b82;
+            --accent: #2563eb;
+            --accent-soft: #e8efff;
+            --danger: #dc2626;
+            --ok: #0f766e;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+        }
+        .page {
+            max-width: 1340px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .topbar h1 {
+            margin: 0 0 6px;
+            font-size: 28px;
+        }
+        .topbar p {
+            margin: 0;
+            color: var(--muted);
+        }
+        .nav {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .nav a, button {
+            appearance: none;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font: inherit;
+            cursor: pointer;
+        }
+        button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        button.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .layout {
+            display: grid;
+            grid-template-columns: 360px minmax(0, 1fr);
+            gap: 16px;
+        }
+        .stack {
+            display: grid;
+            gap: 16px;
+        }
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .panel h2, .panel h3 {
+            margin: 0 0 12px;
+            font-size: 18px;
+        }
+        .subtle {
+            color: var(--muted);
+            font-size: 14px;
+            margin: 0;
+        }
+        .fields {
+            display: grid;
+            gap: 12px;
+        }
+        .row-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        label {
+            display: grid;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+        input, textarea, select {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font: inherit;
+            color: var(--text);
+            background: #fff;
+        }
+        textarea { min-height: 110px; resize: vertical; }
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .status-box {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            background: #fbfcff;
+        }
+        .status-box strong {
+            display: block;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+        .status-box span {
+            font-size: 15px;
+        }
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toggle input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+        }
+        pre {
+            margin: 0;
+            background: #0f172a;
+            color: #d7e3ff;
+            border-radius: 8px;
+            padding: 14px;
+            min-height: 540px;
+            overflow: auto;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+        @media (max-width: 1080px) {
+            .layout { grid-template-columns: 1fr; }
+            .status-grid, .row-2 { grid-template-columns: 1fr; }
+            .topbar { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="topbar">
+        <div>
+            <h1>Notes Console</h1>
+            <p>Operate on notes through the existing API, inspect login state, and control idempotency from the same screen.</p>
+        </div>
+        <div class="nav">
+            <a href="/api/auth-ui/">Auth Console</a>
+        </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:16px;">
+        <div class="status-grid">
+            <div class="status-box">
+                <strong>Login Status</strong>
+                <span id="login-status">Checking session</span>
+            </div>
+            <div class="status-box">
+                <strong>Current User</strong>
+                <span id="login-user">-</span>
+            </div>
+            <div class="status-box">
+                <strong>Server Idempotency</strong>
+                <span id="server-idempotency">Checking</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="layout">
+        <div class="stack">
+            <div class="panel">
+                <h2>Request Controls</h2>
+                <div class="fields">
+                    <label class="toggle">
+                        <input id="send-idempotency" type="checkbox" checked>
+                        <span>Send Idempotency-Key header on write requests</span>
+                    </label>
+                    <label>Custom Idempotency Key
+                        <input id="idempotency-key" type="text" placeholder="custom-key-or-uuid">
+                    </label>
+                </div>
+                <div class="actions">
+                    <button id="btn-generate-key">Generate Key</button>
+                    <button id="btn-refresh-idempotency">Refresh Flag</button>
+                    <button id="btn-toggle-idempotency" class="primary">Toggle Server Flag</button>
+                    <button id="btn-enable-idempotency">Enable</button>
+                    <button id="btn-disable-idempotency">Disable</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Create / Update</h2>
+                <div class="fields">
+                    <label>Note ID for Update
+                        <input id="note-id" type="number" placeholder="required for update/delete/archive">
+                    </label>
+                    <label>Title
+                        <input id="note-title" type="text" placeholder="Django ORM basics">
+                    </label>
+                    <label>Body
+                        <textarea id="note-body" placeholder="Write note content"></textarea>
+                    </label>
+                </div>
+                <div class="actions">
+                    <button id="btn-create" class="primary">Create Note</button>
+                    <button id="btn-update">Update Note</button>
+                    <button id="btn-delete" class="danger">Delete Note</button>
+                    <button id="btn-archive">Archive Note</button>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>List Notes</h2>
+                <div class="fields">
+                    <label>Title Contains
+                        <input id="filter-title" type="text" placeholder="python">
+                    </label>
+                    <div class="row-2">
+                        <label>Limit
+                            <input id="filter-limit" type="number" min="1" max="50" value="10">
+                        </label>
+                        <label>Offset
+                            <input id="filter-offset" type="number" min="0" value="0">
+                        </label>
+                    </div>
+                    <div class="row-2">
+                        <label>Sort
+                            <select id="filter-sort">
+                                <option value="-created_at">Newest</option>
+                                <option value="created_at">Oldest</option>
+                                <option value="title">Title A-Z</option>
+                                <option value="-title">Title Z-A</option>
+                            </select>
+                        </label>
+                        <label class="toggle" style="margin-top:26px;">
+                            <input id="include-archived" type="checkbox">
+                            <span>Include archived</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button id="btn-list">List Notes</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>JSON Response</h2>
+            <p class="subtle" style="margin-bottom:12px;">The latest API response and request metadata are rendered here.</p>
+            <pre id="response-log">{}</pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    const logEl = document.getElementById("response-log");
+    const loginStatusEl = document.getElementById("login-status");
+    const loginUserEl = document.getElementById("login-user");
+    const serverIdempotencyEl = document.getElementById("server-idempotency");
+    const sendIdempotencyEl = document.getElementById("send-idempotency");
+    const idempotencyKeyEl = document.getElementById("idempotency-key");
+
+    function generateKey() {
+        if (window.crypto && window.crypto.randomUUID) {
+            return window.crypto.randomUUID();
+        }
+        return `idem-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function ensureIdempotencyKey() {
+        if (!idempotencyKeyEl.value.trim()) {
+            idempotencyKeyEl.value = generateKey();
+        }
+        return idempotencyKeyEl.value.trim();
+    }
+
+    function setLog(title, status, payload, extra = {}) {
+        logEl.textContent = JSON.stringify({ title, status, ...extra, payload }, null, 2);
+    }
+
+    async function parseResponse(response) {
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+            return response.json();
+        }
+        return { raw: await response.text() };
+    }
+
+    async function refreshLoginStatus() {
+        const response = await fetch("/api/me/", { credentials: "same-origin" });
+        const payload = await parseResponse(response);
+        if (response.ok && payload.user) {
+            loginStatusEl.textContent = "Logged in";
+            loginUserEl.textContent = `${payload.user.email} | id=${payload.user.id} | staff=${payload.user.is_staff}`;
+        } else {
+            loginStatusEl.textContent = "Logged out";
+            loginUserEl.textContent = payload.error || "-";
+        }
+    }
+
+    async function refreshServerIdempotency() {
+        const response = await fetch("/api/idempotency/", { credentials: "same-origin" });
+        const payload = await parseResponse(response);
+        if (response.ok) {
+            serverIdempotencyEl.textContent = payload.idempotency_enabled ? "Enabled" : "Disabled";
+        } else {
+            serverIdempotencyEl.textContent = payload.error || "Unavailable";
+        }
+        return { response, payload };
+    }
+
+    async function apiRequest(url, { title, method = "GET", body = null, useIdempotency = false } = {}) {
+        const headers = {};
+        if (body !== null) {
+            headers["Content-Type"] = "application/json";
+        }
+        if (useIdempotency && sendIdempotencyEl.checked) {
+            headers["Idempotency-Key"] = ensureIdempotencyKey();
+        }
+        const response = await fetch(url, {
+            method,
+            credentials: "same-origin",
+            headers,
+            body
+        });
+        const payload = await parseResponse(response);
+        setLog(title || url, response.status, payload, {
+            method,
+            url,
+            idempotency_key: headers["Idempotency-Key"] || null
+        });
+        await refreshLoginStatus();
+        await refreshServerIdempotency();
+        return { response, payload };
+    }
+
+    document.getElementById("btn-generate-key").addEventListener("click", () => {
+        idempotencyKeyEl.value = generateKey();
+    });
+
+    document.getElementById("btn-refresh-idempotency").addEventListener("click", async () => {
+        const { response, payload } = await refreshServerIdempotency();
+        setLog("refresh-idempotency", response.status, payload);
+    });
+
+    document.getElementById("btn-toggle-idempotency").addEventListener("click", async () => {
+        await apiRequest("/api/idempotency/", {
+            title: "toggle-idempotency",
+            method: "POST",
+            body: "{}"
+        });
+    });
+
+    document.getElementById("btn-enable-idempotency").addEventListener("click", async () => {
+        await apiRequest("/api/idempotency/", {
+            title: "enable-idempotency",
+            method: "POST",
+            body: JSON.stringify({ enabled: true })
+        });
+    });
+
+    document.getElementById("btn-disable-idempotency").addEventListener("click", async () => {
+        await apiRequest("/api/idempotency/", {
+            title: "disable-idempotency",
+            method: "POST",
+            body: JSON.stringify({ enabled: false })
+        });
+    });
+
+    document.getElementById("btn-create").addEventListener("click", async () => {
+        await apiRequest("/api/notes/", {
+            title: "create-note",
+            method: "POST",
+            useIdempotency: true,
+            body: JSON.stringify({
+                title: document.getElementById("note-title").value,
+                body: document.getElementById("note-body").value
+            })
+        });
+    });
+
+    document.getElementById("btn-update").addEventListener("click", async () => {
+        await apiRequest("/api/notes/", {
+            title: "update-note",
+            method: "PUT",
+            useIdempotency: true,
+            body: JSON.stringify({
+                note_id: Number(document.getElementById("note-id").value),
+                title: document.getElementById("note-title").value,
+                body: document.getElementById("note-body").value
+            })
+        });
+    });
+
+    document.getElementById("btn-delete").addEventListener("click", async () => {
+        await apiRequest("/api/notes/", {
+            title: "delete-note",
+            method: "DELETE",
+            useIdempotency: true,
+            body: JSON.stringify({
+                note_id: Number(document.getElementById("note-id").value)
+            })
+        });
+    });
+
+    document.getElementById("btn-archive").addEventListener("click", async () => {
+        const noteId = Number(document.getElementById("note-id").value);
+        await apiRequest(`/api/notes/${noteId}/archive/`, {
+            title: "archive-note",
+            method: "POST",
+            useIdempotency: true
+        });
+    });
+
+    document.getElementById("btn-list").addEventListener("click", async () => {
+        const params = new URLSearchParams({
+            limit: document.getElementById("filter-limit").value || "10",
+            offset: document.getElementById("filter-offset").value || "0",
+            sort: document.getElementById("filter-sort").value || "-created_at"
+        });
+        const title = document.getElementById("filter-title").value.trim();
+        if (title) {
+            params.append("title", title);
+        }
+        if (document.getElementById("include-archived").checked) {
+            params.set("include_archived", "1");
+        }
+        await apiRequest(`/api/notes/?${params.toString()}`, { title: "list-notes" });
+    });
+
+    idempotencyKeyEl.value = generateKey();
+    refreshLoginStatus();
+    refreshServerIdempotency();
+</script>
+</body>
+</html>

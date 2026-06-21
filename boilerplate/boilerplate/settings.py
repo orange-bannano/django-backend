@@ -26,8 +26,8 @@ SECRET_KEY = 'django-insecure-y+(enu1o@2zv6t6b1n#p+02(08_8pd4*b29l##g+nrp6oijj=2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+SESSION_COOKIE_AGE = 3600
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # Application definition
 
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'learning.apps.LearningConfig',
     "debug_toolbar", # useful for viewing sequel queries through the 'view', requests and response
+    'schema_viewer',
 ]
 # The migrate command looks at the INSTALLED_APPS setting
 # and creates any necessary database tables according to the database settings in your boilerplate/settings.py file
@@ -55,6 +56,14 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+# Every HTTP/1.1 request requires a Host header telling the server which site you are trying to reach.
+# If web applications blindly trust this input to generate dynamic links, they become vulnerable.
+# Clients are redirect (302/1) to forbidden endpoint, resulting in Cache poisoning, password exposure, etc
+ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]']
+# White lists
+# Can be done in deployement server also
+
+CSRF_COOKIE_SECURE = True
 
 ROOT_URLCONF = 'boilerplate.urls'
 

@@ -21,6 +21,7 @@ from django.urls import include, path
 urlpatterns = [
     # Django admin site routes.
     path('admin/', admin.site.urls),
+    path('schema-viewer/', include('schema_viewer.urls')),
     # Learning app API endpoints.
     path('api/', include('learning.urls')),
 ] + debug_toolbar_urls()

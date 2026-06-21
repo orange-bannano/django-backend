@@ -51,6 +51,13 @@ def say_hello(request):
     """
     return render(request, 'hello.html')
 
+
+@require_http_methods(["GET"])
+def notes_frontend_view(request):
+    """Render a UI for note CRUD and idempotency controls."""
+
+    return render(request, "learning/notes_frontend.html")
+
 # 4 requests per minute per IP address or user, key = "user"
 @ratelimit(key="ip", rate="4/m", method="POST", block=True)
 @csrf_exempt
@@ -133,33 +140,31 @@ def notes_collection(request):
         # Delegate persistence to the service layer.
         # **clean_data unpacks the dictionary into keyword arguments.
         note = create_note(owner=request.user, **clean_data)
-        # return JsonResponse({"note": serialize_note(note)}, status=201)
-
+        return finalize_idempotent(JsonResponse({"note": serialize_note(note)}, status=201))
+        # html = f"""
+        #         <html>
+        #         <body>
+        #             <h1>Note Created</h1>
+        #
+        #             <h2>{note.title}</h2>
+        #
+        #             <div>
+        #                 {note.body}
+        #             </div>
+        #         </body>
+        #         </html>
+        #         """
+        # return finalize_idempotent(HttpResponse(html, status=201))
         # When concatenation is used vulnerability persists
-        html = f"""
-        <html>
-        <body>
-            <h1>Note Created</h1>
-
-            <h2>{note.title}</h2>
-
-            <div>
-                {note.body}
-            </div>
-        </body>
-        </html>
-        """
-        return finalize_idempotent(HttpResponse(html, status=201))
-
-        # template variables are auto-escaped
-        # return render(
-        #     request,
-        #     "note_created.html",
-        #     {
-        #         "note": note,
-        #     },
-        #     status=201,
-        # )
+        # # template variables are auto-escaped
+        # # return render(
+        # #     request,
+        # #     "note_created.html",
+        # #     {
+        # #         "note": note,
+        # #     },
+        # #     status=201,
+        # # )
 
     if request.method in {"PUT", "DELETE"}:
         payload, error_message = parse_json_body(request)
