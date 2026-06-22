@@ -6,6 +6,7 @@ from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
+from django.utils import timezone
 
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -125,8 +126,15 @@ def login_view(request):
     # Create a session cookie for the authenticated user.
     # This sets request.user and persists across future requests in which specified backend is used to fetch user details.
     login(request, user, backend='learning.auth_backends.SimpleEmailBackend')
-    mark_user_logged_in(user)
+    if user.groups.filter(name="Admin").exists():
+        request.session.set_expiry(45)  # 45 seconds, not valid for /admin/
+    else:
+        request.session.set_expiry(settings.SESSION_COOKIE_AGE)  # 1 hour
 
+    user.last_login = timezone.now()
+    user.save(update_fields=["last_login"])
+
+    mark_user_logged_in(user)
     # Return user info (safe: no sensitive data like passwords).
     return JsonResponse({
         "user": {
@@ -161,7 +169,9 @@ def logout_view(request):
     logout(request)
     mark_user_logged_out(user)
 
-    return JsonResponse({"status": "logged out"})
+    return JsonResponse({"status": "logged out",
+                         "last login": user.last_login
+                         })
 
 @user_passes_test(is_authenticated_or_error)
 @csrf_exempt
@@ -198,6 +208,7 @@ def current_user_view(request):
             "id": request.user.id,
             "email": request.user.email,
             "is_staff": request.user.is_staff,
+            "last_login": request.user.last_login,
         }
     })
 

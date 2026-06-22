@@ -16,6 +16,17 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# DEV SERVER DOES NOT ALLOW SSL/TSL
+# SECURE_SSL_REDIRECT = True
+# # HTTP Strict Transport Security (HSTS) tells always use HTTPS, never use HTTP
+# SECURE_HSTS_SECONDS = 31536000
+# # Until nex year BROWSER itself uses HTTPS, after 1 year it may access using HTTP, if that time HSTS is turned off, if still turned on, another HSTS header is sent as cookie
+# # Increase the time as the stability of TLS certificate is confirmed
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# # SECURE_HSTS_PRELOAD = True
+# # Tells browsers to include this site in their HSTS preload list, ensuring HTTPS is enforced even on the first visit.
+# # For rollback reasons suppose, TLS expires for domain (HTTPS fails) then HTTP access is not allowed on the browser, due to preload.
+# # TURN ON after maturity of the site and TLS certificate stability is confirmed.
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -27,6 +38,7 @@ SECRET_KEY = 'django-insecure-y+(enu1o@2zv6t6b1n#p+02(08_8pd4*b29l##g+nrp6oijj=2
 DEBUG = True
 
 SESSION_COOKIE_AGE = 3600
+# SESSIONS END WHEN AGE EXPIRES
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # Application definition
@@ -63,7 +75,8 @@ ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]']
 # White lists
 # Can be done in deployement server also
 
-CSRF_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
 
 ROOT_URLCONF = 'boilerplate.urls'
 
