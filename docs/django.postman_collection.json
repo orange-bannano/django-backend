@@ -1,0 +1,1904 @@
+{
+  "info": {
+    "_postman_id": "fe3a82b9-a7ac-4ce5-87d6-07c7db3cc3dc",
+    "name": "Django Starter project",
+    "description": "A RESTful API backend built with Django for a notes management application. Supports user registration, authentication (session-based), note CRUD operations, password management, and permission group management.\n\n**Authentication:** Endpoints require valid (signed) Session cookies.\n\n**Endpoints overview:**\n\n- **Auth:** Register, Login, Logout, Current User\n    \n- **Account:** Update Password, Delete Account\n    \n- **Notes:** Create, Read (with filtering & pagination), Update, Delete\n    \n- **Groups:** Create permission groups",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "55458238",
+    "_collection_link": "https://go.postman.co/collection/55458238-fe3a82b9-a7ac-4ce5-87d6-07c7db3cc3dc?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Get notes",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "c99bf7e4-8d4e-4f18-ba90-50f924376c9c",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/notes/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "notes",
+            ""
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "3",
+              "description": "Number of rows seen at a time.",
+              "disabled": true
+            },
+            {
+              "key": "offset",
+              "value": "0",
+              "description": "Number of rows skiped from beginning",
+              "disabled": true
+            },
+            {
+              "key": "sort",
+              "value": "-title",
+              "description": "sort order",
+              "disabled": true
+            },
+            {
+              "key": "title",
+              "value": "django",
+              "description": "title search keyword",
+              "disabled": true
+            },
+            {
+              "key": "title",
+              "value": "python",
+              "disabled": true
+            },
+            {
+              "key": "include_archived",
+              "value": "1",
+              "description": "1 = true",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Retrieves a paginated, filterable list of notes for the authenticated user. Requires Basic Authentication.\nRequires user to be active.\nRequires Idempotency Key.  \nReturns notes and meta data for page including limit, offset, count, next offset, previous offset.\n\n**Query Parameters:**\n\n- `limit` (integer) — Number of results per page (e.g. `3`)\n    \n- `offset` (integer) — Number of results to skip from the beginning (e.g. `0`)\n    \n- `sort` (string) — Sort order; prefix with `-` for descending (e.g. `-title`)\n    \n- `title` (string, repeatable) — Filter by title keyword; multiple values are OR'd\n    \n- `include_archived` (integer) — Set to `1` to include archived notes\n\n- `exact_note_id` (integer) — fetchs note with specified id"
+      },
+      "response": [
+        {
+          "name": "Get notes",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "c99bf7e4-8d4e-4f18-ba90-50f924376c9c",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/notes/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "notes",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "3",
+                  "description": "Number of rows seen at a time.",
+                  "disabled": true
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "Number of rows skiped from beginning",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "-title",
+                  "description": "sort order",
+                  "disabled": true
+                },
+                {
+                  "key": "title",
+                  "value": "django",
+                  "description": "title search keyword",
+                  "disabled": true
+                },
+                {
+                  "key": "title",
+                  "value": "python",
+                  "disabled": true
+                },
+                {
+                  "key": "include_archived",
+                  "value": "1",
+                  "description": "1 = true",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:55:22 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "107"
+            },
+            {
+              "key": "Vary",
+              "value": "Cookie"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "1c7f94475fd0494a93abace9a0d3ea60"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=51.14919994957745;desc=\"Elapsed time\", SQLPanel_sql_time;dur=8.515299996361136;desc=\"SQL 8 queries\", CachePanel_total_time;dur=0;desc=\"Cache 0 Calls\""
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"notes\": [],\n    \"meta\": {\n        \"limit\": 10,\n        \"offset\": 0,\n        \"count\": 0,\n        \"next_offset\": null,\n        \"previous_offset\": null\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Post note",
+      "request": {
+        "auth": {
+          "type": "basic"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "6645644b56b77b5",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"title\": \"Django ORM basics\",\r\n    \"body\": \"Review select_related and prefetch_related.\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/notes/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "notes",
+            ""
+          ]
+        },
+        "description": "Creates a new note for the authenticated user.\nRequires Basic Authentication.\nRequires user to be active.\nRequires Idempotency Key.\n\n**Request Body (JSON):**\n\n- `title` (string, required) — Title of the note\n    \n- `body` (string, required) — Content/body of the note"
+      },
+      "response": [
+        {
+          "name": "Post note",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"title\": \"Django ORM basics\",\r\n    \"body\": \"Review select_related and prefetch_related.\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/notes/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "notes",
+                ""
+              ]
+            }
+          },
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:51:00 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "48"
+            },
+            {
+              "key": "Vary",
+              "value": "Cookie"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "e5cad716a759431688909e21c665de1b"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=36.22309979982674;desc=\"Elapsed time\", SQLPanel_sql_time;dur=2.096300246194005;desc=\"SQL 3 queries\", CachePanel_total_time;dur=2.3952999617904425;desc=\"Cache 2 Calls\""
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Idempotency-Key header is required.\"\n}"
+        },
+        {
+          "name": "Post note",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "6645644b56b77b5",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"title\": \"Django ORM basics\",\r\n    \"body\": \"Review select_related and prefetch_related.\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/notes/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "notes",
+                ""
+              ]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:56:53 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "326"
+            },
+            {
+              "key": "Vary",
+              "value": "Cookie"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "b330b63458fa409da0bf04f2756a0d8e"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=71.41289999708533;desc=\"Elapsed time\", SQLPanel_sql_time;dur=14.540799660608172;desc=\"SQL 9 queries\", CachePanel_total_time;dur=8.01829993724823;desc=\"Cache 5 Calls\""
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"note\": {\n        \"id\": 7,\n        \"title\": \"Django ORM basics\",\n        \"body\": \"Review select_related and prefetch_related.\",\n        \"is_archived\": false,\n        \"owner\": {\n            \"id\": 10\n        },\n        \"members\": [\n            {\n                \"user_id\": 10,\n                \"email\": \"manager@gmail.com\",\n                \"role\": \"Manager\"\n            }\n        ],\n        \"created_at\": \"2026-06-26T17:56:53.406396+00:00\",\n        \"updated_at\": \"2026-06-26T17:56:53.406429+00:00\"\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Put note",
+      "request": {
+        "auth": {
+          "type": "basic"
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "6478i67j5w4vwyb4ywv454w",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"note_id\": 7,\r\n    \"title\": \"Updated title\",\r\n    \"body\": \"Updated body\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/notes/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "notes",
+            ""
+          ]
+        },
+        "description": "Updates an existing note by its ID.\nRequires Basic Authentication.\nRequires user to be active.\nRequires Idempotency Key.\n\n**Request Body (JSON):**\n\n- `note_id` (integer, required) — ID of the note to update\n    \n- `title` (string) — New title for the note\n    \n- `body` (string) — New body/content for the note"
+      },
+      "response": [
+        {
+          "name": "Put note",
+          "originalRequest": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "6478i67j5w4vwyb4ywv454w",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"note_id\": 7,\r\n    \"title\": \"Updated title\",\r\n    \"body\": \"Updated body\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/notes/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "notes",
+                ""
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:57:35 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "291"
+            },
+            {
+              "key": "Vary",
+              "value": "Cookie"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "87e6c86208c54d5d869c131be993498d"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=65.08329999633133;desc=\"Elapsed time\", SQLPanel_sql_time;dur=19.45639937184751;desc=\"SQL 9 queries\", CachePanel_total_time;dur=3.8847997784614563;desc=\"Cache 4 Calls\""
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"note\": {\n        \"id\": 7,\n        \"title\": \"Updated title\",\n        \"body\": \"Updated body\",\n        \"is_archived\": false,\n        \"owner\": {\n            \"id\": 10\n        },\n        \"members\": [\n            {\n                \"user_id\": 10,\n                \"email\": \"manager@gmail.com\",\n                \"role\": \"Manager\"\n            }\n        ],\n        \"created_at\": \"2026-06-26T17:56:53.406396+00:00\",\n        \"updated_at\": \"2026-06-26T17:57:35.722823+00:00\"\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Delete note",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "basic"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "4ygehrgjrykkyukd",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"note_id\": 7\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/notes/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "notes",
+            ""
+          ]
+        },
+        "description": "Deletes a specific note by its ID.\nRequires Basic Authentication.\nRequires user to be active.\nRequires Idempotency Key.\n\n**Request Body (JSON):**\n\n- `note_id` (integer, required) — ID of the note to delete"
+      },
+      "response": [
+        {
+          "name": "Delete note",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Idempotency-Key",
+                "value": "4ygehrgjrykkyukd",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"note_id\": 7\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/notes/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "notes",
+                ""
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:57:58 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "388"
+            },
+            {
+              "key": "Vary",
+              "value": "Cookie"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "b1909a0094b840729dd24e87d3aab50b"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=51.59569997340441;desc=\"Elapsed time\", SQLPanel_sql_time;dur=13.77610000781715;desc=\"SQL 8 queries\", CachePanel_total_time;dur=0;desc=\"Cache 0 Calls\""
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"notes\": [\n        {\n            \"id\": 7,\n            \"title\": \"Updated title\",\n            \"body\": \"Updated body\",\n            \"is_archived\": false,\n            \"owner\": {\n                \"id\": 10\n            },\n            \"members\": [\n                {\n                    \"user_id\": 10,\n                    \"email\": \"manager@gmail.com\",\n                    \"role\": \"Manager\"\n                }\n            ],\n            \"created_at\": \"2026-06-26T17:56:53.406396+00:00\",\n            \"updated_at\": \"2026-06-26T17:57:35.722823+00:00\"\n        }\n    ],\n    \"meta\": {\n        \"limit\": 10,\n        \"offset\": 0,\n        \"count\": 1,\n        \"next_offset\": null,\n        \"previous_offset\": null\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"manager@gmail.com\",\r\n    \"password\": \"sohamsoham\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/login/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "login",
+            ""
+          ]
+        },
+        "description": "Authenticates a user with email and password credentials. Returns a session token or cookie on success.\n\n**Request Body (JSON):**\n\n- `email` (string, required) — User's email address\n    \n- `password` (string, required) — User's password"
+      },
+      "response": [
+        {
+          "name": "login",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"manager@gmail.com\",\r\n    \"password\": \"new-secret123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/login/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "login",
+                ""
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:33:55 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Vary",
+              "value": "Cookie"
+            },
+            {
+              "key": "Content-Length",
+              "value": "69"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "4f094204a26d40d0991fcf9c55b1aa9c"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=1005.3807999938726;desc=\"Elapsed time\", SQLPanel_sql_time;dur=33.85150036774576;desc=\"SQL 7 queries\", CachePanel_total_time;dur=2.5815998669713736;desc=\"Cache 3 Calls\""
+            },
+            {
+              "key": "Set-Cookie",
+              "value": "csrftoken=B3iaGNndBjnEpzB7J0fK4g1mV5ODIeQE; expires=Fri, 25 Jun 2027 17:33:55 GMT; Max-Age=31449600; Path=/; SameSite=Lax"
+            },
+            {
+              "key": "Set-Cookie",
+              "value": "sessionid=62ya5ukq2txpaxhwamgcgakis6tv6izj; expires=Fri, 26 Jun 2026 18:33:55 GMT; HttpOnly; Max-Age=3600; Path=/; SameSite=Lax"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"user\": {\n        \"id\": 10,\n        \"email\": \"manager@gmail.com\",\n        \"is_staff\": false\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "logout",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/logout/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "logout",
+            ""
+          ]
+        },
+        "description": "Logs out the currently authenticated user and invalidates the active session. And returns success and session length in seconds.\nRequires Basic Authentication."
+      },
+      "response": [
+        {
+          "name": "logout",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/logout/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "logout",
+                ""
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:34:06 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "71"
+            },
+            {
+              "key": "Vary",
+              "value": "Cookie"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "97053e9c27aa48728a27a6376af3b0e2"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=49.66000001877546;desc=\"Elapsed time\", SQLPanel_sql_time;dur=15.482400078326464;desc=\"SQL 5 queries\", CachePanel_total_time;dur=0.8199000731110573;desc=\"Cache 1 Calls\""
+            },
+            {
+              "key": "Set-Cookie",
+              "value": "sessionid=\"\"; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/; SameSite=Lax"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"status\": \"logged out\",\n    \"login session length (in seconds)\": 10.77003\n}"
+        }
+      ]
+    },
+    {
+      "name": "update password",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"password\": \"sohamsoham\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/reset/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "reset",
+            ""
+          ]
+        },
+        "description": "Updates the password for the currently authenticated user.  \nRequires Basic Authentication.\n\n**Request Body (JSON):**\n\n- `password` (string, required) — The new password to set"
+      },
+      "response": [
+        {
+          "name": "update password",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"password\": \"new-secret123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/reset/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "reset",
+                ""
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:34:24 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "51"
+            },
+            {
+              "key": "Vary",
+              "value": "Cookie"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "0f2aa455496e402d88ae2b5d697745a9"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=1042.677199933678;desc=\"Elapsed time\", SQLPanel_sql_time;dur=20.861499710008502;desc=\"SQL 6 queries\", CachePanel_total_time;dur=0.9286000858992338;desc=\"Cache 1 Calls\""
+            },
+            {
+              "key": "Set-Cookie",
+              "value": "sessionid=\"\"; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/; SameSite=Lax"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"status\": \"password updated, please log in again\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Create user",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"newuser@example.com\",\r\n    \"user_name\": \"new user\",\r\n    \"password\": \"sohamsoham\",\r\n    \"first_name\": \"Ashok\",\r\n    \"last_name\": \"Kumar\",\r\n    \"groups\": [\r\n        \"Employee\",\r\n        \"Group A\"\r\n    ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/register/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "register",
+            ""
+          ]
+        },
+        "description": "Registers a new user account.  \nRequires Admin privilege.\n\n**Request Body (JSON):**\n\n- `email` (string, required) — Email address for the new account\n    \n- `password` (string, required) — Password for the new account\n    \n- `first_name` (string, optional) — User's first name, default user_name\n    \n- `last_name` (string, optional) — User's last name, default first_name\n    \n- `user_name` (string, optional) — User name, default email\n    \n- group (list, optional) — Groups which has the user, default 'Employee'"
+      },
+      "response": [
+        {
+          "name": "Create user",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"newuser@example.com\",\r\n    \"user_name\": \"new user\",\r\n    \"password\": \"sohamsoham\",\r\n    \"first_name\": \"Ashok\",\r\n    \"last_name\": \"Kumar\",\r\n    \"groups\": [\r\n        \"Employee\",\r\n        \"Group A\"\r\n    ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/register/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "register",
+                ""
+              ]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:45:37 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Vary",
+              "value": "Cookie"
+            },
+            {
+              "key": "Content-Length",
+              "value": "52"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "12704510cedd4f21a6c6c9d1c2940f36"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=1129.9014000687748;desc=\"Elapsed time\", SQLPanel_sql_time;dur=51.536499755457044;desc=\"SQL 14 queries\", CachePanel_total_time;dur=0.820700079202652;desc=\"Cache 1 Calls\""
+            },
+            {
+              "key": "Set-Cookie",
+              "value": "csrftoken=DpXFccPxZciu61DxTRdNDS7Vwj3uvpEY; expires=Fri, 25 Jun 2027 17:45:37 GMT; Max-Age=31449600; Path=/; SameSite=Lax"
+            },
+            {
+              "key": "Set-Cookie",
+              "value": "sessionid=p2f7dy6vqaw0jtniz9epjypm9szdkm5n; expires=Fri, 26 Jun 2026 18:45:37 GMT; HttpOnly; Max-Age=3600; Path=/; SameSite=Lax"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"user\": {\n        \"id\": 12,\n        \"email\": \"newuser@example.com\"\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Create group",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n            \"group\": \"Editor\",\r\n            \"permission\": [\"view_note\", \"add_note\", \"change_note\"]\r\n        }",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/register-group/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "register-group",
+            ""
+          ]
+        },
+        "description": "Creates a new permission group and assigns specific permissions to it.\n\n**Request Body (JSON):**\n- `group` (string, required) — Name of the group (e.g. `Editor`)\n- `permission` (array of strings, required) — List of permission codenames to assign (e.g. `[\"view_note\", \"add_note\", \"change_note\"]`)"
+      },
+      "response": []
+    },
+    {
+      "name": "current user",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/me/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "me",
+            ""
+          ]
+        },
+        "description": "Returns the profile information of the currently authenticated user.\nRequires Basic Authentication."
+      },
+      "response": [
+        {
+          "name": "current user",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/me/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "me",
+                ""
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:37:02 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "233"
+            },
+            {
+              "key": "Vary",
+              "value": "Cookie"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "6345cbd5616b4dde90a8f374e926c831"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=36.97700006887317;desc=\"Elapsed time\", SQLPanel_sql_time;dur=9.660500101745129;desc=\"SQL 5 queries\", CachePanel_total_time;dur=0;desc=\"Cache 0 Calls\""
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"user\": {\n        \"id\": 8,\n        \"email\": \"admin@gmail.com\",\n        \"username\": \"admin@gmail.com\",\n        \"groups\": [\n            {\n                \"id\": 6,\n                \"name\": \"Admin\",\n                \"permissions\": []\n            }\n        ],\n        \"is_staff\": false,\n        \"last_login\": \"2026-06-26T17:36:29.774Z\",\n        \"first_name\": \"\",\n        \"last_name\": \"\"\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "delete user",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/delete/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "delete",
+            ""
+          ]
+        },
+        "description": "Permanently deletes the currently authenticated user's account. This action is irreversible.\nRequires Basic Authentication."
+      },
+      "response": []
+    },
+    {
+      "name": "deactivate user",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/deactivate/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "deactivate",
+            ""
+          ]
+        },
+        "description": "Deactivates the currently authenticated user's account.\nRequires Basic Authentication."
+      },
+      "response": []
+    },
+    {
+      "name": "Registered Groups",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/groups/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "groups",
+            ""
+          ]
+        },
+        "description": "Return all groups and their permissions.\n"
+      },
+      "response": [
+        {
+          "name": "Registered Groups",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/groups/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "groups",
+                ""
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:47:58 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "220"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "acc375bf189a4d948648c47a3b7daf34"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=33.819800009950995;desc=\"Elapsed time\", SQLPanel_sql_time;dur=3.423200221732259;desc=\"SQL 3 queries\", CachePanel_total_time;dur=0;desc=\"Cache 0 Calls\""
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"groups\": [\n        {\n            \"id\": 6,\n            \"name\": \"Admin\",\n            \"permissions\": []\n        },\n        {\n            \"id\": 5,\n            \"name\": \"Employee\",\n            \"permissions\": []\n        },\n        {\n            \"id\": 8,\n            \"name\": \"Group A\",\n            \"permissions\": [\n                \"change_note\"\n            ]\n        },\n        {\n            \"id\": 7,\n            \"name\": \"Manager\",\n            \"permissions\": []\n        }\n    ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "Registered Users",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/users/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "users",
+            ""
+          ]
+        },
+        "description": "```\nReturn registered users along with user name and active and logged-in status.\nRequires Admin privilege.\n\n ```"
+      },
+      "response": [
+        {
+          "name": "Registered Users",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/users/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "users",
+                ""
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:48:15 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "383"
+            },
+            {
+              "key": "Vary",
+              "value": "Cookie"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "946675e9972348b580ae37c7f6b989ae"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=43.01689984276891;desc=\"Elapsed time\", SQLPanel_sql_time;dur=4.016599850729108;desc=\"SQL 5 queries\", CachePanel_total_time;dur=3.5198000259697437;desc=\"Cache 5 Calls\""
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"users\": [\n        {\n            \"username\": \"admin@gmail.com\",\n            \"is_active\": true,\n            \"is_logged_in\": true\n        },\n        {\n            \"username\": \"employee@gmail.com\",\n            \"is_active\": true,\n            \"is_logged_in\": false\n        },\n        {\n            \"username\": \"manager@gmail.com\",\n            \"is_active\": true,\n            \"is_logged_in\": true\n        },\n        {\n            \"username\": \"new user\",\n            \"is_active\": false,\n            \"is_logged_in\": false\n        },\n        {\n            \"username\": \"soham@gmail.com\",\n            \"is_active\": true,\n            \"is_logged_in\": false\n        }\n    ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "Create Group",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n\t\"group\": \"Group A\",\r\n\t\"permission\": [\r\n\t\t\"change_note\"\r\n\t]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/register-group/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "register-group",
+            ""
+          ]
+        },
+        "description": "```\nResponse (success):\n    201: {\"id\": 2, \"name\": \"Manager\", \"permissions\": [\"view_note\", \"add_note\", \"change_note\"]}\nResponse (conflict):\n    409: {\"error\": \"Group already exists.\"}\nResponse (invalid input):\n    400: {\"error\": \"Unknown permission(s): {permission1, permission2}\"}\n    400: {\"error\": \"Group name is required.\"}\n    400: {\"error\": \"permission must be a string or list of strings.\"}\n    400: {\"error\": \"...\"}\nPostman:\n    Method: POST\n    URL: not currently routed in learning/urls.py\n    Body:\n    {\n        \"group\": \"Editor\",\n        \"permission\": [\"view_note\", \"add_note\", \"change_note\"]\n    }\n    Auth: admin session cookie\n\n ```"
+      },
+      "response": [
+        {
+          "name": "Create Group",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n\t\"group\": \"Group A\",\r\n\t\"permission\": [\r\n\t\t\"change_note\"\r\n\t]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/register-group/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "register-group",
+                ""
+              ]
+            }
+          },
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:36:54 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "60"
+            },
+            {
+              "key": "Vary",
+              "value": "Cookie"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "358b0b0ba6434fc3b76a1c410ba03c48"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=68.12749989330769;desc=\"Elapsed time\", SQLPanel_sql_time;dur=25.394199416041374;desc=\"SQL 8 queries\", CachePanel_total_time;dur=0;desc=\"Cache 0 Calls\""
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"id\": 8,\n    \"name\": \"Group A\",\n    \"permissions\": [\n        \"change_note\"\n    ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "toggle idempotency",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"enabled\": false,\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/idempotency/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "idempotency",
+            ""
+          ]
+        },
+        "description": "```\nRead (GET) or update (POST) the idempotency feature flag.\n\n ```"
+      },
+      "response": [
+        {
+          "name": "toggle idempotency",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"enabled\": true\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/idempotency/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                "idempotency",
+                ""
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:48:30 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "29"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "bffc665234d7463d96bcf41733bf4fde"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=26.526100002229214;desc=\"Elapsed time\", SQLPanel_sql_time;dur=0;desc=\"SQL 0 queries\", CachePanel_total_time;dur=0.8471000473946333;desc=\"Cache 1 Calls\""
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"idempotency_enabled\": true\n}"
+        }
+      ]
+    },
+    {
+      "name": "archive note",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/<int:note_id>/archive/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "<int:note_id>",
+            "archive",
+            ""
+          ]
+        },
+        "description": "```\nToggels archive status of a note and return the updated resource.\nRequires Idempotency Key.\n\n ```"
+      },
+      "response": []
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            ""
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "Health Check",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "api",
+                ""
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Date",
+              "value": "Fri, 26 Jun 2026 17:48:42 GMT"
+            },
+            {
+              "key": "Server",
+              "value": "WSGIServer/0.2 CPython/3.14.0"
+            },
+            {
+              "key": "Content-Type",
+              "value": "text/html; charset=utf-8"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "Content-Length",
+              "value": "13994"
+            },
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "Referrer-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin"
+            },
+            {
+              "key": "djdt-request-id",
+              "value": "59b57331b92440e5aef5dae67a101f81"
+            },
+            {
+              "key": "Server-Timing",
+              "value": "TimerPanel_utime;dur=0;desc=\"User CPU time\", TimerPanel_stime;dur=0;desc=\"System CPU time\", TimerPanel_total;dur=0;desc=\"Total CPU time\", TimerPanel_total_time;dur=29.29420000873506;desc=\"Elapsed time\", SQLPanel_sql_time;dur=0;desc=\"SQL 0 queries\", CachePanel_total_time;dur=0;desc=\"Cache 0 Calls\""
+            }
+          ],
+          "cookie": [],
+          "body": "<!DOCTYPE html>\n<html lang=\"en\">\n    <head>\n        <meta charset=\"UTF-8\">\n        <title>Hello from World in title</title>\n    </head>\n    <body>\n        <h1>Hello from World\n            <h1>\n                <link rel=\"stylesheet\" href=\"/static/debug_toolbar/css/print.css\" media=\"print\">\n                <link rel=\"stylesheet\" href=\"/static/debug_toolbar/css/toolbar.css\">\n                <script type=\"module\" src=\"/static/debug_toolbar/js/toolbar.js\" async></script>\n                <div id=\"djDebug\" class=\"djdt-hidden\" dir=\"ltr\"\n     \n     data-request-id=\"59b57331b92440e5aef5dae67a101f81\"\n     data-render-panel-url=\"/__debug__/render_panel/\"\n     \n     \n     \n     data-sidebar-url=\"/__debug__/history_sidebar/\"\n     \n     data-default-show=\"true\"\n       data-update-on-fetch=\"False\">\n                    <div class=\"djdt-hidden\" id=\"djDebugToolbar\">\n                        <ul id=\"djDebugPanelList\">\n                            <li>\n                                <a id=\"djHideToolBarButton\" href=\"#\" title=\"Hide toolbar\">Hide »</a>\n                            </li>\n                            <li>\n                                <a id=\"djToggleThemeButton\" href=\"#\" title=\"Toggle Theme\">\n          Toggle Theme \n                                    <svg\n  aria-hidden=\"true\"\n  class=\"djdt-hidden theme-auto\"\n  fill=\"currentColor\"\n  viewBox=\"0 0 32 32\"\n  version=\"1.1\"\n  xmlns=\"http://www.w3.org/2000/svg\"\n>\n                                        <path\n    d=\"M0 16q0 3.264 1.28 6.24t3.392 5.088 5.12 3.424 6.208 1.248q3.264 0 6.24-1.248t5.088-3.424 3.392-5.088 1.28-6.24-1.28-6.208-3.392-5.12-5.088-3.392-6.24-1.28q-3.264 0-6.208 1.28t-5.12 3.392-3.392 5.12-1.28 6.208zM4 16q0-3.264 1.6-6.016t4.384-4.352 6.016-1.632 6.016 1.632 4.384 4.352 1.6 6.016-1.6 6.048-4.384 4.352-6.016 1.6-6.016-1.6-4.384-4.352-1.6-6.048zM16 26.016q2.72 0 5.024-1.344t3.648-3.648 1.344-5.024-1.344-4.992-3.648-3.648-5.024-1.344v20z\"\n  ></path>\n                                    </svg>\n                                    <svg\n  aria-hidden=\"true\"\n  class=\"djdt-hidden theme-light\"\n  viewBox=\"0 0 24 24\"\n  fill=\"none\"\n  xmlns=\"http://www.w3.org/2000/svg\"\n>\n                                        <path\n    fill-rule=\"evenodd\"\n    clip-rule=\"evenodd\"\n    d=\"M12 1.25C12.4142 1.25 12.75 1.58579 12.75 2V4C12.75 4.41421 12.4142 4.75 12 4.75C11.5858 4.75 11.25 4.41421 11.25 4V2C11.25 1.58579 11.5858 1.25 12 1.25ZM3.66865 3.71609C3.94815 3.41039 4.42255 3.38915 4.72825 3.66865L6.95026 5.70024C7.25596 5.97974 7.2772 6.45413 6.9977 6.75983C6.7182 7.06553 6.2438 7.08677 5.9381 6.80727L3.71609 4.77569C3.41039 4.49619 3.38915 4.02179 3.66865 3.71609ZM20.3314 3.71609C20.6109 4.02179 20.5896 4.49619 20.2839 4.77569L18.0619 6.80727C17.7562 7.08677 17.2818 7.06553 17.0023 6.75983C16.7228 6.45413 16.744 5.97974 17.0497 5.70024L19.2718 3.66865C19.5775 3.38915 20.0518 3.41039 20.3314 3.71609ZM12 7.75C9.65279 7.75 7.75 9.65279 7.75 12C7.75 14.3472 9.65279 16.25 12 16.25C14.3472 16.25 16.25 14.3472 16.25 12C16.25 9.65279 14.3472 7.75 12 7.75ZM6.25 12C6.25 8.82436 8.82436 6.25 12 6.25C15.1756 6.25 17.75 8.82436 17.75 12C17.75 15.1756 15.1756 17.75 12 17.75C8.82436 17.75 6.25 15.1756 6.25 12ZM1.25 12C1.25 11.5858 1.58579 11.25 2 11.25H4C4.41421 11.25 4.75 11.5858 4.75 12C4.75 12.4142 4.41421 12.75 4 12.75H2C1.58579 12.75 1.25 12.4142 1.25 12ZM19.25 12C19.25 11.5858 19.5858 11.25 20 11.25H22C22.4142 11.25 22.75 11.5858 22.75 12C22.75 12.4142 22.4142 12.75 22 12.75H20C19.5858 12.75 19.25 12.4142 19.25 12ZM17.0255 17.0252C17.3184 16.7323 17.7933 16.7323 18.0862 17.0252L20.3082 19.2475C20.6011 19.5404 20.601 20.0153 20.3081 20.3082C20.0152 20.6011 19.5403 20.601 19.2475 20.3081L17.0255 18.0858C16.7326 17.7929 16.7326 17.3181 17.0255 17.0252ZM6.97467 17.0253C7.26756 17.3182 7.26756 17.7931 6.97467 18.086L4.75244 20.3082C4.45955 20.6011 3.98468 20.6011 3.69178 20.3082C3.39889 20.0153 3.39889 19.5404 3.69178 19.2476L5.91401 17.0253C6.2069 16.7324 6.68177 16.7324 6.97467 17.0253ZM12 19.25C12.4142 19.25 12.75 19.5858 12.75 20V22C12.75 22.4142 12.4142 22.75 12 22.75C11.5858 22.75 11.25 22.4142 11.25 22V20C11.25 19.5858 11.5858 19.25 12 19.25Z\"\n    fill=\"currentColor\"\n  />\n                                    </svg>\n                                    <svg\n  aria-hidden=\"true\"\n  class=\"djdt-hidden theme-dark\"\n  viewBox=\"0 0 24 24\"\n  fill=\"none\"\n  xmlns=\"http://www.w3.org/2000/svg\"\n>\n                                        <path\n    d=\"M3.32031 11.6835C3.32031 16.6541 7.34975 20.6835 12.3203 20.6835C16.1075 20.6835 19.3483 18.3443 20.6768 15.032C19.6402 15.4486 18.5059 15.6834 17.3203 15.6834C12.3497 15.6834 8.32031 11.654 8.32031 6.68342C8.32031 5.50338 8.55165 4.36259 8.96453 3.32996C5.65605 4.66028 3.32031 7.89912 3.32031 11.6835Z\"\n    stroke=\"currentColor\"\n    stroke-width=\"2\"\n    stroke-linecap=\"round\"\n    stroke-linejoin=\"round\"\n  />\n                                    </svg>\n                                </a>\n                            </li>\n                            <li id=\"djdt-HistoryPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtHistoryPanel\" checked title=\"Disable for next and successive requests\">\n                                <a href=\"#\" title=\"History\" class=\"HistoryPanel\">\n  \n  History\n  \n    \n      \n                                    <br>\n                                    <small>/api/</small>\n                                </a>\n                            </li>\n                            <li id=\"djdt-VersionsPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtVersionsPanel\" checked title=\"Disable for next and successive requests\">\n                                <a href=\"#\" title=\"Versions\" class=\"VersionsPanel\">\n  \n  Versions\n  \n    \n      \n                                    <br>\n                                    <small>Django 6.0.6</small>\n                                </a>\n                            </li>\n                            <li id=\"djdt-TimerPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtTimerPanel\" checked title=\"Disable for next and successive requests\">\n                                <div class=\"djdt-contentless\">\n  \n  Time\n  \n    \n      \n                                    <br>\n                                    <small>Total: 29.29ms</small>\n                                </div>\n                            </li>\n                            <li id=\"djdt-SettingsPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtSettingsPanel\" checked title=\"Disable for next and successive requests\">\n                                <a href=\"#\" title=\"Settings from &#x27;boilerplate.settings&#x27;\" class=\"SettingsPanel\">\n  \n  Settings\n  \n    \n      \n    \n  \n  \n    </a>\n                            </li>\n                            <li id=\"djdt-HeadersPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtHeadersPanel\" checked title=\"Disable for next and successive requests\">\n                                <a href=\"#\" title=\"Headers\" class=\"HeadersPanel\">\n  \n  Headers\n  \n    \n      \n    \n  \n  \n    </a>\n                            </li>\n                            <li id=\"djdt-RequestPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtRequestPanel\" checked title=\"Disable for next and successive requests\">\n                                <a href=\"#\" title=\"Request\" class=\"RequestPanel\">\n  \n  Request\n  \n    \n      \n                                    <br>\n                                    <small>say_hello</small>\n                                </a>\n                            </li>\n                            <li id=\"djdt-SQLPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtSQLPanel\" checked title=\"Disable for next and successive requests\">\n                                <a href=\"#\" title=\"SQL queries from 0 connections\" class=\"SQLPanel\">\n  \n  SQL\n  \n    \n      \n                                    <br>\n                                    <small>0 queries in 0.00ms</small>\n                                </a>\n                            </li>\n                            <li id=\"djdt-StaticFilesPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtStaticFilesPanel\" checked title=\"Disable for next and successive requests\">\n                                <a href=\"#\" title=\"Static files (0 found, 0 used)\" class=\"StaticFilesPanel\">\n  \n  Static files\n  \n    \n      \n                                    <br>\n                                    <small>0 files used</small>\n                                </a>\n                            </li>\n                            <li id=\"djdt-TemplatesPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtTemplatesPanel\" checked title=\"Disable for next and successive requests\">\n                                <a href=\"#\" title=\"Templates (1 rendered)\" class=\"TemplatesPanel\">\n  \n  Templates\n  \n    \n      \n                                    <br>\n                                    <small>hello.html</small>\n                                </a>\n                            </li>\n                            <li id=\"djdt-AlertsPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtAlertsPanel\" checked title=\"Disable for next and successive requests\">\n                                <a href=\"#\" title=\"Alerts\" class=\"AlertsPanel\">\n  \n  Alerts\n  \n    \n      \n    \n  \n  \n    </a>\n                            </li>\n                            <li id=\"djdt-CachePanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtCachePanel\" checked title=\"Disable for next and successive requests\">\n                                <a href=\"#\" title=\"Cache calls from 1 backend\" class=\"CachePanel\">\n  \n  Cache\n  \n    \n      \n                                    <br>\n                                    <small>0 calls in 0.00ms</small>\n                                </a>\n                            </li>\n                            <li id=\"djdt-SignalsPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtSignalsPanel\" checked title=\"Disable for next and successive requests\">\n                                <a href=\"#\" title=\"Signals\" class=\"SignalsPanel\">\n  \n  Signals\n  \n    \n      \n                                    <br>\n                                    <small>35 receivers of 15 signals</small>\n                                </a>\n                            </li>\n                            <li id=\"djdt-CommunityPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtCommunityPanel\" checked title=\"Disable for next and successive requests\">\n                                <a href=\"#\" title=\"Community\" class=\"CommunityPanel\">\n  \n  Community\n  \n    \n      \n    \n  \n  \n    </a>\n                            </li>\n                            <li id=\"djdt-RedirectsPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtRedirectsPanel\" title=\"Enable for next and successive requests\">\n                                <div class=\"djdt-contentless djdt-disabled\">\n  \n  Intercept redirects\n  \n  \n    </div>\n                            </li>\n                            <li id=\"djdt-ProfilingPanel\" class=\"djDebugPanelButton\">\n                                <input type=\"checkbox\" data-cookie=\"djdtProfilingPanel\" title=\"Enable for next and successive requests\">\n                                <div class=\"djdt-contentless djdt-disabled\">\n  \n  Profiling\n  \n  \n    </div>\n                            </li>\n                        </ul>\n                    </div>\n                    <div class=\"djdt-hidden\" id=\"djDebugToolbarHandle\">\n                        <div title=\"Show toolbar\" id=\"djShowToolBarButton\">\n                            <span id=\"djShowToolBarD\">D</span>\n                            <span id=\"djShowToolBarJ\">J</span>DT\n                        </div>\n                    </div>\n                    <div id=\"HistoryPanel\" class=\"djdt-panelContent djdt-hidden\">\n                        <div class=\"djDebugPanelTitle\">\n                            <h3>History</h3>\n                            <button type=\"button\" class=\"djDebugClose\">×</button>\n                        </div>\n                        <div class=\"djDebugPanelContent\">\n                            <div class=\"djdt-loader\"></div>\n                            <div class=\"djdt-scroll\"></div>\n                        </div>\n                    </div>\n                    <div id=\"VersionsPanel\" class=\"djdt-panelContent djdt-hidden\">\n                        <div class=\"djDebugPanelTitle\">\n                            <h3>Versions</h3>\n                            <button type=\"button\" class=\"djDebugClose\">×</button>\n                        </div>\n                        <div class=\"djDebugPanelContent\">\n                            <div class=\"djdt-loader\"></div>\n                            <div class=\"djdt-scroll\"></div>\n                        </div>\n                    </div>\n                    <div id=\"SettingsPanel\" class=\"djdt-panelContent djdt-hidden\">\n                        <div class=\"djDebugPanelTitle\">\n                            <h3>Settings from &#x27;boilerplate.settings&#x27;</h3>\n                            <button type=\"button\" class=\"djDebugClose\">×</button>\n                        </div>\n                        <div class=\"djDebugPanelContent\">\n                            <div class=\"djdt-loader\"></div>\n                            <div class=\"djdt-scroll\"></div>\n                        </div>\n                    </div>\n                    <div id=\"HeadersPanel\" class=\"djdt-panelContent djdt-hidden\">\n                        <div class=\"djDebugPanelTitle\">\n                            <h3>Headers</h3>\n                            <button type=\"button\" class=\"djDebugClose\">×</button>\n                        </div>\n                        <div class=\"djDebugPanelContent\">\n                            <div class=\"djdt-loader\"></div>\n                            <div class=\"djdt-scroll\"></div>\n                        </div>\n                    </div>\n                    <div id=\"RequestPanel\" class=\"djdt-panelContent djdt-hidden\">\n                        <div class=\"djDebugPanelTitle\">\n                            <h3>Request</h3>\n                            <button type=\"button\" class=\"djDebugClose\">×</button>\n                        </div>\n                        <div class=\"djDebugPanelContent\">\n                            <div class=\"djdt-loader\"></div>\n                            <div class=\"djdt-scroll\"></div>\n                        </div>\n                    </div>\n                    <div id=\"SQLPanel\" class=\"djdt-panelContent djdt-hidden\">\n                        <div class=\"djDebugPanelTitle\">\n                            <h3>SQL queries from 0 connections</h3>\n                            <button type=\"button\" class=\"djDebugClose\">×</button>\n                        </div>\n                        <div class=\"djDebugPanelContent\">\n                            <div class=\"djdt-loader\"></div>\n                            <div class=\"djdt-scroll\"></div>\n                        </div>\n                    </div>\n                    <div id=\"StaticFilesPanel\" class=\"djdt-panelContent djdt-hidden\">\n                        <div class=\"djDebugPanelTitle\">\n                            <h3>Static files (0 found, 0 used)</h3>\n                            <button type=\"button\" class=\"djDebugClose\">×</button>\n                        </div>\n                        <div class=\"djDebugPanelContent\">\n                            <div class=\"djdt-loader\"></div>\n                            <div class=\"djdt-scroll\"></div>\n                        </div>\n                    </div>\n                    <div id=\"TemplatesPanel\" class=\"djdt-panelContent djdt-hidden\">\n                        <div class=\"djDebugPanelTitle\">\n                            <h3>Templates (1 rendered)</h3>\n                            <button type=\"button\" class=\"djDebugClose\">×</button>\n                        </div>\n                        <div class=\"djDebugPanelContent\">\n                            <div class=\"djdt-loader\"></div>\n                            <div class=\"djdt-scroll\"></div>\n                        </div>\n                    </div>\n                    <div id=\"AlertsPanel\" class=\"djdt-panelContent djdt-hidden\">\n                        <div class=\"djDebugPanelTitle\">\n                            <h3>Alerts</h3>\n                            <button type=\"button\" class=\"djDebugClose\">×</button>\n                        </div>\n                        <div class=\"djDebugPanelContent\">\n                            <div class=\"djdt-loader\"></div>\n                            <div class=\"djdt-scroll\"></div>\n                        </div>\n                    </div>\n                    <div id=\"CachePanel\" class=\"djdt-panelContent djdt-hidden\">\n                        <div class=\"djDebugPanelTitle\">\n                            <h3>Cache calls from 1 backend</h3>\n                            <button type=\"button\" class=\"djDebugClose\">×</button>\n                        </div>\n                        <div class=\"djDebugPanelContent\">\n                            <div class=\"djdt-loader\"></div>\n                            <div class=\"djdt-scroll\"></div>\n                        </div>\n                    </div>\n                    <div id=\"SignalsPanel\" class=\"djdt-panelContent djdt-hidden\">\n                        <div class=\"djDebugPanelTitle\">\n                            <h3>Signals</h3>\n                            <button type=\"button\" class=\"djDebugClose\">×</button>\n                        </div>\n                        <div class=\"djDebugPanelContent\">\n                            <div class=\"djdt-loader\"></div>\n                            <div class=\"djdt-scroll\"></div>\n                        </div>\n                    </div>\n                    <div id=\"CommunityPanel\" class=\"djdt-panelContent djdt-hidden\">\n                        <div class=\"djDebugPanelTitle\">\n                            <h3>Community</h3>\n                            <button type=\"button\" class=\"djDebugClose\">×</button>\n                        </div>\n                        <div class=\"djDebugPanelContent\">\n                            <div class=\"djdt-loader\"></div>\n                            <div class=\"djdt-scroll\"></div>\n                        </div>\n                    </div>\n                    <div id=\"djDebugWindow\" class=\"djdt-panelContent djdt-hidden\"></div>\n                </div>\n            </body>\n        </html>"
+        }
+      ]
+    }
+  ]
+}

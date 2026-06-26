@@ -16,8 +16,6 @@ urlpatterns = [
     # ========================================================================
     # Collection endpoint for listing and creating notes.
     path("notes/", views.notes_collection, name="notes-collection"),
-    # Frontend for note CRUD and idempotency controls.
-    path("notes-ui/", views.notes_frontend_view, name="notes-frontend"),
     # Archive action for a single note.
     path("notes/<int:note_id>/archive/", views.archive_note_view, name="note-archive"),
     # Toggle the cache-backed idempotency feature flag.
@@ -32,8 +30,6 @@ urlpatterns = [
     # ========================================================================
     # User registration endpoint.
     path("register/", auth_views.create_user_view, name="register"),
-    # Frontend for login and account operations.
-    path("auth-ui/", auth_views.auth_frontend_view, name="auth-frontend"),
     # User login endpoint.
     path("login/", auth_views.login_view, name="login"),
     # Registered users with active and logged-in status.

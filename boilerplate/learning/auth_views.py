@@ -28,13 +28,6 @@ User = get_user_model()
 
 # LOGGED_IN_USER_TTL_SECONDS = 86400
 
-@require_http_methods(["GET"])
-def auth_frontend_view(request):
-    """Render a small UI for login and account operations."""
-
-    return render(request, "learning/auth_frontend.html")
-
-
 def _logged_in_cache_key(user_id: int) -> str:
     return f"auth:logged-in:{user_id}"
 
@@ -233,12 +226,12 @@ def current_user_view(request):
 
 @user_passes_test(is_authenticated_or_error)
 @csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["DELETE"])
 def delete_own_account(request):
     """Delete the currently authenticated user account.
 
     Postman:
-        Method: POST
+        Method: DELETE
         URL: /api/delete/
         Query params: none
         Body: none

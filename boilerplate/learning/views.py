@@ -51,13 +51,6 @@ def say_hello(request):
     """
     return render(request, 'hello.html')
 
-
-@require_http_methods(["GET"])
-def notes_frontend_view(request):
-    """Render a UI for note CRUD and idempotency controls."""
-
-    return render(request, "learning/notes_frontend.html")
-
 # 4 requests per minute per IP address or user, key = "user"
 @ratelimit(key="ip", rate="4/m", method="POST", block=True)
 @csrf_exempt
