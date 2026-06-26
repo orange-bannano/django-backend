@@ -1,0 +1,29 @@
+$kind: http-request
+description: |-
+  Creates a new note for the authenticated user.
+  Requires Basic Authentication.
+  Requires user to be active.
+  Requires Idempotency Key.
+
+  **Request Body (JSON):**
+
+  - `title` (string, required) — Title of the note
+      
+  - `body` (string, required) — Content/body of the note
+url: http://127.0.0.1:8000/api/notes/
+method: POST
+headers:
+  Idempotency-Key: 6645644b56b77b5
+body:
+  type: json
+  content: "{\r
+
+    \    \"title\": \"Django ORM basics\",\r
+
+    \    \"body\": \"Review select_related and prefetch_related.\"\r
+
+    }"
+auth:
+  type: basic
+examples: ./.resources/Post note.resources/examples
+order: 2000

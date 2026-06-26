@@ -1,0 +1,21 @@
+$kind: http-request
+description: |-
+  Deletes a specific note by its ID.
+  Requires Basic Authentication.
+  Requires user to be active.
+  Requires Idempotency Key.
+
+  **Request Body (JSON):**
+
+  - `note_id` (integer, required) — ID of the note to delete
+url: http://127.0.0.1:8000/api/notes/
+method: GET
+headers:
+  Idempotency-Key: 4ygehrgjrykkyukd
+body:
+  type: json
+  content: "{\r\n    \"note_id\": 7\r\n}"
+auth:
+  type: basic
+examples: ./.resources/Delete note.resources/examples
+order: 4000

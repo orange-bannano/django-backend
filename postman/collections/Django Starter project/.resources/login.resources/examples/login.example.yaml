@@ -1,0 +1,54 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/api/login/
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \    \"email\": \"manager@gmail.com\",\r
+
+      \    \"password\": \"new-secret123\"\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    - key: Date
+      value: Fri, 26 Jun 2026 17:33:55 GMT
+    - key: Server
+      value: WSGIServer/0.2 CPython/3.14.0
+    - key: Content-Type
+      value: application/json
+    - key: X-Frame-Options
+      value: DENY
+    - key: Vary
+      value: Cookie
+    - key: Content-Length
+      value: "69"
+    - key: X-Content-Type-Options
+      value: nosniff
+    - key: Referrer-Policy
+      value: same-origin
+    - key: Cross-Origin-Opener-Policy
+      value: same-origin
+    - key: djdt-request-id
+      value: 4f094204a26d40d0991fcf9c55b1aa9c
+    - key: Server-Timing
+      value: TimerPanel_utime;dur=0;desc="User CPU time", TimerPanel_stime;dur=0;desc="System CPU time", TimerPanel_total;dur=0;desc="Total CPU time", TimerPanel_total_time;dur=1005.3807999938726;desc="Elapsed time", SQLPanel_sql_time;dur=33.85150036774576;desc="SQL 7 queries", CachePanel_total_time;dur=2.5815998669713736;desc="Cache 3 Calls"
+    - key: Set-Cookie
+      value: csrftoken=B3iaGNndBjnEpzB7J0fK4g1mV5ODIeQE; expires=Fri, 25 Jun 2027 17:33:55 GMT; Max-Age=31449600; Path=/; SameSite=Lax
+    - key: Set-Cookie
+      value: sessionid=62ya5ukq2txpaxhwamgcgakis6tv6izj; expires=Fri, 26 Jun 2026 18:33:55 GMT; HttpOnly; Max-Age=3600; Path=/; SameSite=Lax
+  body:
+    type: text
+    content: |-
+      {
+          "user": {
+              "id": 10,
+              "email": "manager@gmail.com",
+              "is_staff": false
+          }
+      }
+order: 1000

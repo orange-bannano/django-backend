@@ -1,0 +1,28 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/api/logout/
+  method: POST
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Fri, 26 Jun 2026 17:34:06 GMT
+    Server: WSGIServer/0.2 CPython/3.14.0
+    Content-Type: application/json
+    X-Frame-Options: DENY
+    Content-Length: "71"
+    Vary: Cookie
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: same-origin
+    Cross-Origin-Opener-Policy: same-origin
+    djdt-request-id: 97053e9c27aa48728a27a6376af3b0e2
+    Server-Timing: TimerPanel_utime;dur=0;desc="User CPU time", TimerPanel_stime;dur=0;desc="System CPU time", TimerPanel_total;dur=0;desc="Total CPU time", TimerPanel_total_time;dur=49.66000001877546;desc="Elapsed time", SQLPanel_sql_time;dur=15.482400078326464;desc="SQL 5 queries", CachePanel_total_time;dur=0.8199000731110573;desc="Cache 1 Calls"
+    Set-Cookie: sessionid=""; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; Path=/; SameSite=Lax
+  body:
+    type: text
+    content: |-
+      {
+          "status": "logged out",
+          "login session length (in seconds)": 10.77003
+      }
+order: 1000

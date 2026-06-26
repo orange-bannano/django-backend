@@ -1,0 +1,5 @@
+$kind: http-request
+url: http://127.0.0.1:8000/api/
+method: GET
+examples: ./.resources/Health Check.resources/examples
+order: 18000

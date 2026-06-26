@@ -343,7 +343,7 @@ def create_user_view(request):
     email = payload.get("email", "").strip()
     username = payload.get("user_name", email).strip()
     password = payload.get("password", "").strip()
-    first_name = payload.get("first_name", "").strip()
+    first_name = payload.get("first_name", username).strip()
     last_name = payload.get("last_name", first_name).strip()
 
     # Guard against missing required fields.
@@ -391,7 +391,7 @@ def create_user_view(request):
             {"error": "Group or Role must be a string or list of strings."},
             status=400,
         )
-    groups = list(Group.objects.filter(codename__in=unfiltered_groups))
+    groups = list(Group.objects.filter(name__in=unfiltered_groups))
 
     # Create the user with the validated data.
     user = User.objects.create_user(

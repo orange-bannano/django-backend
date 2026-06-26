@@ -1,0 +1,10 @@
+$kind: http-request
+description: |-
+  Permanently deletes the currently authenticated user's account. This action is irreversible.
+  Requires Basic Authentication.
+url: http://127.0.0.1:8000/api/delete/
+method: POST
+body:
+  type: json
+  content: ""
+order: 11000

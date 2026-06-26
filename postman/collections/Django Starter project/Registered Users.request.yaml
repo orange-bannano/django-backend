@@ -1,0 +1,11 @@
+$kind: http-request
+description: |-
+  ```
+  Return registered users along with user name and active and logged-in status.
+  Requires Admin privilege.
+
+   ```
+url: http://127.0.0.1:8000/api/users/
+method: GET
+examples: ./.resources/Registered Users.resources/examples
+order: 14000

@@ -1,0 +1,67 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/api/register/
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \    \"email\": \"newuser@example.com\",\r
+
+      \    \"user_name\": \"new user\",\r
+
+      \    \"password\": \"sohamsoham\",\r
+
+      \    \"first_name\": \"Ashok\",\r
+
+      \    \"last_name\": \"Kumar\",\r
+
+      \    \"groups\": [\r
+
+      \        \"Employee\",\r
+
+      \        \"Group A\"\r
+
+      \    ]\r
+
+      }"
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    - key: Date
+      value: Fri, 26 Jun 2026 17:45:37 GMT
+    - key: Server
+      value: WSGIServer/0.2 CPython/3.14.0
+    - key: Content-Type
+      value: application/json
+    - key: X-Frame-Options
+      value: DENY
+    - key: Vary
+      value: Cookie
+    - key: Content-Length
+      value: "52"
+    - key: X-Content-Type-Options
+      value: nosniff
+    - key: Referrer-Policy
+      value: same-origin
+    - key: Cross-Origin-Opener-Policy
+      value: same-origin
+    - key: djdt-request-id
+      value: 12704510cedd4f21a6c6c9d1c2940f36
+    - key: Server-Timing
+      value: TimerPanel_utime;dur=0;desc="User CPU time", TimerPanel_stime;dur=0;desc="System CPU time", TimerPanel_total;dur=0;desc="Total CPU time", TimerPanel_total_time;dur=1129.9014000687748;desc="Elapsed time", SQLPanel_sql_time;dur=51.536499755457044;desc="SQL 14 queries", CachePanel_total_time;dur=0.820700079202652;desc="Cache 1 Calls"
+    - key: Set-Cookie
+      value: csrftoken=DpXFccPxZciu61DxTRdNDS7Vwj3uvpEY; expires=Fri, 25 Jun 2027 17:45:37 GMT; Max-Age=31449600; Path=/; SameSite=Lax
+    - key: Set-Cookie
+      value: sessionid=p2f7dy6vqaw0jtniz9epjypm9szdkm5n; expires=Fri, 26 Jun 2026 18:45:37 GMT; HttpOnly; Max-Age=3600; Path=/; SameSite=Lax
+  body:
+    type: text
+    content: |-
+      {
+          "user": {
+              "id": 12,
+              "email": "newuser@example.com"
+          }
+      }
+order: 1000

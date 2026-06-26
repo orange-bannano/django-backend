@@ -1,6 +1,8 @@
 .idea/
 untitled
 boilerplate/assets
+latex report/
+.postman/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -150,6 +152,7 @@ activemq-data/
 
 # SageMath parsed files
 *.sage.py
+latex report/
 
 # Environments
 .env

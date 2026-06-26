@@ -1,0 +1,41 @@
+$kind: http-request
+name: Create Group
+description: |-
+  ```
+  Response (success):
+      201: {"id": 2, "name": "Manager", "permissions": ["view_note", "add_note", "change_note"]}
+  Response (conflict):
+      409: {"error": "Group already exists."}
+  Response (invalid input):
+      400: {"error": "Unknown permission(s): {permission1, permission2}"}
+      400: {"error": "Group name is required."}
+      400: {"error": "permission must be a string or list of strings."}
+      400: {"error": "..."}
+  Postman:
+      Method: POST
+      URL: not currently routed in learning/urls.py
+      Body:
+      {
+          "group": "Editor",
+          "permission": ["view_note", "add_note", "change_note"]
+      }
+      Auth: admin session cookie
+
+   ```
+url: http://127.0.0.1:8000/api/register-group/
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \t\"group\": \"Group A\",\r
+
+    \t\"permission\": [\r
+
+    \t\t\"change_note\"\r
+
+    \t]\r
+
+    }"
+examples: ./.resources/Create Group-1.resources/examples
+order: 15000

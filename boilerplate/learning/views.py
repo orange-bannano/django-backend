@@ -96,6 +96,8 @@ def notes_collection(request):
             "note_id": 12
         }
     """
+    if request.user.is_active != True:
+        return JsonResponse({"error": "User must be active in."}, status=401)
 
     if not is_authenticated(request.user):
         return JsonResponse({"error": "Authentication required."}, status=401)
@@ -228,12 +230,18 @@ def notes_collection(request):
 
     # Example: /api/notes/?title=django&title=python
     title_params = request.GET.getlist("title")
+    exact_note_id = request.GET.get("exact_note_id")
     # Use __icontains for case-insensitive substring search (safe: no user SQL).
+    # https://docs.djangoproject.com/en/6.0/ref/models/querysets/#std-fieldlookup-isnull
     query = Q()
-    for keyword in title_params:
-        query |= Q(title__icontains=keyword)
-
+    if exact_note_id:
+        query &= Q(note_id__exact=exact_note_id)
+    else:
+        for keyword in title_params:
+            query |= Q(title__icontains=keyword)
     # https://docs.djangoproject.com/en/6.0/ref/models/expressions/#query-expressions
+
+    # https://docs.djangoproject.com/en/6.0/ref/models/querysets/#django.db.models.query.QuerySet.order_by
     # Extract and validate sort parameter (default: -created_at for newest first, created_at for descending).
     sort_param = request.GET.get("sort", "-created_at").strip()
     try:

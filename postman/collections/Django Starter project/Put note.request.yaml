@@ -1,0 +1,33 @@
+$kind: http-request
+description: |-
+  Updates an existing note by its ID.
+  Requires Basic Authentication.
+  Requires user to be active.
+  Requires Idempotency Key.
+
+  **Request Body (JSON):**
+
+  - `note_id` (integer, required) — ID of the note to update
+      
+  - `title` (string) — New title for the note
+      
+  - `body` (string) — New body/content for the note
+url: http://127.0.0.1:8000/api/notes/
+method: PUT
+headers:
+  Idempotency-Key: 6478i67j5w4vwyb4ywv454w
+body:
+  type: json
+  content: "{\r
+
+    \    \"note_id\": 7,\r
+
+    \    \"title\": \"Updated title\",\r
+
+    \    \"body\": \"Updated body\"\r
+
+    }"
+auth:
+  type: basic
+examples: ./.resources/Put note.resources/examples
+order: 3000

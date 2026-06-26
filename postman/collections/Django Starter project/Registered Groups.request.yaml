@@ -1,0 +1,7 @@
+$kind: http-request
+description: |
+  Return all groups and their permissions.
+url: http://127.0.0.1:8000/api/groups/
+method: GET
+examples: ./.resources/Registered Groups.resources/examples
+order: 13000

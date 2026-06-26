@@ -1,0 +1,19 @@
+$kind: http-request
+description: |-
+  Creates a new permission group and assigns specific permissions to it.
+
+  **Request Body (JSON):**
+  - `group` (string, required) — Name of the group (e.g. `Editor`)
+  - `permission` (array of strings, required) — List of permission codenames to assign (e.g. `["view_note", "add_note", "change_note"]`)
+url: http://127.0.0.1:8000/api/register-group/
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \            \"group\": \"Editor\",\r
+
+    \            \"permission\": [\"view_note\", \"add_note\", \"change_note\"]\r
+
+    \        }"
+order: 9000

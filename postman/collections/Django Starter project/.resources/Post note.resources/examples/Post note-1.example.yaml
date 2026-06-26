@@ -1,0 +1,55 @@
+$kind: http-example
+name: Post note
+request:
+  url: http://127.0.0.1:8000/api/notes/
+  method: POST
+  headers:
+    Idempotency-Key: 6645644b56b77b5
+  body:
+    type: json
+    content: "{\r
+
+      \    \"title\": \"Django ORM basics\",\r
+
+      \    \"body\": \"Review select_related and prefetch_related.\"\r
+
+      }"
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Date: Fri, 26 Jun 2026 17:56:53 GMT
+    Server: WSGIServer/0.2 CPython/3.14.0
+    Content-Type: application/json
+    X-Frame-Options: DENY
+    Content-Length: "326"
+    Vary: Cookie
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: same-origin
+    Cross-Origin-Opener-Policy: same-origin
+    djdt-request-id: b330b63458fa409da0bf04f2756a0d8e
+    Server-Timing: TimerPanel_utime;dur=0;desc="User CPU time", TimerPanel_stime;dur=0;desc="System CPU time", TimerPanel_total;dur=0;desc="Total CPU time", TimerPanel_total_time;dur=71.41289999708533;desc="Elapsed time", SQLPanel_sql_time;dur=14.540799660608172;desc="SQL 9 queries", CachePanel_total_time;dur=8.01829993724823;desc="Cache 5 Calls"
+  body:
+    type: text
+    content: |-
+      {
+          "note": {
+              "id": 7,
+              "title": "Django ORM basics",
+              "body": "Review select_related and prefetch_related.",
+              "is_archived": false,
+              "owner": {
+                  "id": 10
+              },
+              "members": [
+                  {
+                      "user_id": 10,
+                      "email": "manager@gmail.com",
+                      "role": "Manager"
+                  }
+              ],
+              "created_at": "2026-06-26T17:56:53.406396+00:00",
+              "updated_at": "2026-06-26T17:56:53.406429+00:00"
+          }
+      }
+order: 2000

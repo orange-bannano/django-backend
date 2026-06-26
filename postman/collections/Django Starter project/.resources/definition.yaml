@@ -1,0 +1,15 @@
+$kind: collection
+description: |-
+  A RESTful API backend built with Django for a notes management application. Supports user registration, authentication (session-based), note CRUD operations, password management, and permission group management.
+
+  **Authentication:** Endpoints require valid (signed) Session cookies.
+
+  **Endpoints overview:**
+
+  - **Auth:** Register, Login, Logout, Current User
+      
+  - **Account:** Update Password, Delete Account
+      
+  - **Notes:** Create, Read (with filtering & pagination), Update, Delete
+      
+  - **Groups:** Create permission groups

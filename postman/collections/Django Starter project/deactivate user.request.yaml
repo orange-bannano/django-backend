@@ -1,0 +1,7 @@
+$kind: http-request
+description: |-
+  Deactivates the currently authenticated user's account.
+  Requires Basic Authentication.
+url: http://127.0.0.1:8000/api/deactivate/
+method: POST
+order: 12000

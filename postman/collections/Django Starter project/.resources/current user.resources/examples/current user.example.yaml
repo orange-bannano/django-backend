@@ -1,0 +1,41 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/api/me/
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Fri, 26 Jun 2026 17:37:02 GMT
+    Server: WSGIServer/0.2 CPython/3.14.0
+    Content-Type: application/json
+    X-Frame-Options: DENY
+    Content-Length: "233"
+    Vary: Cookie
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: same-origin
+    Cross-Origin-Opener-Policy: same-origin
+    djdt-request-id: 6345cbd5616b4dde90a8f374e926c831
+    Server-Timing: TimerPanel_utime;dur=0;desc="User CPU time", TimerPanel_stime;dur=0;desc="System CPU time", TimerPanel_total;dur=0;desc="Total CPU time", TimerPanel_total_time;dur=36.97700006887317;desc="Elapsed time", SQLPanel_sql_time;dur=9.660500101745129;desc="SQL 5 queries", CachePanel_total_time;dur=0;desc="Cache 0 Calls"
+  body:
+    type: text
+    content: |-
+      {
+          "user": {
+              "id": 8,
+              "email": "admin@gmail.com",
+              "username": "admin@gmail.com",
+              "groups": [
+                  {
+                      "id": 6,
+                      "name": "Admin",
+                      "permissions": []
+                  }
+              ],
+              "is_staff": false,
+              "last_login": "2026-06-26T17:36:29.774Z",
+              "first_name": "",
+              "last_name": ""
+          }
+      }
+order: 1000

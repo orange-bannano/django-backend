@@ -1,0 +1,57 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/api/notes/
+  method: GET
+  headers:
+    Idempotency-Key: 4ygehrgjrykkyukd
+  body:
+    type: json
+    content: "{\r\n    \"note_id\": 7\r\n}"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Fri, 26 Jun 2026 17:57:58 GMT
+    Server: WSGIServer/0.2 CPython/3.14.0
+    Content-Type: application/json
+    X-Frame-Options: DENY
+    Content-Length: "388"
+    Vary: Cookie
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: same-origin
+    Cross-Origin-Opener-Policy: same-origin
+    djdt-request-id: b1909a0094b840729dd24e87d3aab50b
+    Server-Timing: TimerPanel_utime;dur=0;desc="User CPU time", TimerPanel_stime;dur=0;desc="System CPU time", TimerPanel_total;dur=0;desc="Total CPU time", TimerPanel_total_time;dur=51.59569997340441;desc="Elapsed time", SQLPanel_sql_time;dur=13.77610000781715;desc="SQL 8 queries", CachePanel_total_time;dur=0;desc="Cache 0 Calls"
+  body:
+    type: text
+    content: |-
+      {
+          "notes": [
+              {
+                  "id": 7,
+                  "title": "Updated title",
+                  "body": "Updated body",
+                  "is_archived": false,
+                  "owner": {
+                      "id": 10
+                  },
+                  "members": [
+                      {
+                          "user_id": 10,
+                          "email": "manager@gmail.com",
+                          "role": "Manager"
+                      }
+                  ],
+                  "created_at": "2026-06-26T17:56:53.406396+00:00",
+                  "updated_at": "2026-06-26T17:57:35.722823+00:00"
+              }
+          ],
+          "meta": {
+              "limit": 10,
+              "offset": 0,
+              "count": 1,
+              "next_offset": null,
+              "previous_offset": null
+          }
+      }
+order: 1000

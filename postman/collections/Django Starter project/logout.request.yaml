@@ -1,0 +1,8 @@
+$kind: http-request
+description: |-
+  Logs out the currently authenticated user and invalidates the active session. And returns success and session length in seconds.
+  Requires Basic Authentication.
+url: http://127.0.0.1:8000/api/logout/
+method: POST
+examples: ./.resources/logout.resources/examples
+order: 6000

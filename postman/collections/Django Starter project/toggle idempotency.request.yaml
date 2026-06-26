@@ -1,0 +1,13 @@
+$kind: http-request
+description: |-
+  ```
+  Read (GET) or update (POST) the idempotency feature flag.
+
+   ```
+url: http://127.0.0.1:8000/api/idempotency/
+method: GET
+body:
+  type: json
+  content: "{\r\n    \"enabled\": false,\r\n}"
+examples: ./.resources/toggle idempotency.resources/examples
+order: 16000

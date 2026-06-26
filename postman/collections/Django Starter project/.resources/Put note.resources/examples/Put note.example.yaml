@@ -1,0 +1,56 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/api/notes/
+  method: PUT
+  headers:
+    Idempotency-Key: 6478i67j5w4vwyb4ywv454w
+  body:
+    type: json
+    content: "{\r
+
+      \    \"note_id\": 7,\r
+
+      \    \"title\": \"Updated title\",\r
+
+      \    \"body\": \"Updated body\"\r
+
+      }"
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Fri, 26 Jun 2026 17:57:35 GMT
+    Server: WSGIServer/0.2 CPython/3.14.0
+    Content-Type: application/json
+    X-Frame-Options: DENY
+    Content-Length: "291"
+    Vary: Cookie
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: same-origin
+    Cross-Origin-Opener-Policy: same-origin
+    djdt-request-id: 87e6c86208c54d5d869c131be993498d
+    Server-Timing: TimerPanel_utime;dur=0;desc="User CPU time", TimerPanel_stime;dur=0;desc="System CPU time", TimerPanel_total;dur=0;desc="Total CPU time", TimerPanel_total_time;dur=65.08329999633133;desc="Elapsed time", SQLPanel_sql_time;dur=19.45639937184751;desc="SQL 9 queries", CachePanel_total_time;dur=3.8847997784614563;desc="Cache 4 Calls"
+  body:
+    type: text
+    content: |-
+      {
+          "note": {
+              "id": 7,
+              "title": "Updated title",
+              "body": "Updated body",
+              "is_archived": false,
+              "owner": {
+                  "id": 10
+              },
+              "members": [
+                  {
+                      "user_id": 10,
+                      "email": "manager@gmail.com",
+                      "role": "Manager"
+                  }
+              ],
+              "created_at": "2026-06-26T17:56:53.406396+00:00",
+              "updated_at": "2026-06-26T17:57:35.722823+00:00"
+          }
+      }
+order: 1000

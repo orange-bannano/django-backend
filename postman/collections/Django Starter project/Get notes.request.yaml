@@ -1,0 +1,50 @@
+$kind: http-request
+description: |-
+  Retrieves a paginated, filterable list of notes for the authenticated user. Requires Basic Authentication.
+  Requires user to be active.
+  Requires Idempotency Key.  
+  Returns notes and meta data for page including limit, offset, count, next offset, previous offset.
+
+  **Query Parameters:**
+
+  - `limit` (integer) — Number of results per page (e.g. `3`)
+      
+  - `offset` (integer) — Number of results to skip from the beginning (e.g. `0`)
+      
+  - `sort` (string) — Sort order; prefix with `-` for descending (e.g. `-title`)
+      
+  - `title` (string, repeatable) — Filter by title keyword; multiple values are OR'd
+      
+  - `include_archived` (integer) — Set to `1` to include archived notes
+
+  - `exact_note_id` (integer) — fetchs note with specified id
+url: http://127.0.0.1:8000/api/notes/
+method: GET
+headers:
+  Idempotency-Key: c99bf7e4-8d4e-4f18-ba90-50f924376c9c
+queryParams:
+  - key: limit
+    value: "3"
+    disabled: true
+    description: Number of rows seen at a time.
+  - key: offset
+    value: "0"
+    disabled: true
+    description: Number of rows skiped from beginning
+  - key: sort
+    value: -title
+    disabled: true
+    description: sort order
+  - key: title
+    value: django
+    disabled: true
+    description: title search keyword
+  - key: title
+    value: python
+    disabled: true
+  - key: include_archived
+    value: "1"
+    disabled: true
+    description: 1 = true
+examples: ./.resources/Get notes.resources/examples
+order: 1000

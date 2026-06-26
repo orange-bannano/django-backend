@@ -1,0 +1,48 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/api/groups/
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Fri, 26 Jun 2026 17:47:58 GMT
+    Server: WSGIServer/0.2 CPython/3.14.0
+    Content-Type: application/json
+    X-Frame-Options: DENY
+    Content-Length: "220"
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: same-origin
+    Cross-Origin-Opener-Policy: same-origin
+    djdt-request-id: acc375bf189a4d948648c47a3b7daf34
+    Server-Timing: TimerPanel_utime;dur=0;desc="User CPU time", TimerPanel_stime;dur=0;desc="System CPU time", TimerPanel_total;dur=0;desc="Total CPU time", TimerPanel_total_time;dur=33.819800009950995;desc="Elapsed time", SQLPanel_sql_time;dur=3.423200221732259;desc="SQL 3 queries", CachePanel_total_time;dur=0;desc="Cache 0 Calls"
+  body:
+    type: text
+    content: |-
+      {
+          "groups": [
+              {
+                  "id": 6,
+                  "name": "Admin",
+                  "permissions": []
+              },
+              {
+                  "id": 5,
+                  "name": "Employee",
+                  "permissions": []
+              },
+              {
+                  "id": 8,
+                  "name": "Group A",
+                  "permissions": [
+                      "change_note"
+                  ]
+              },
+              {
+                  "id": 7,
+                  "name": "Manager",
+                  "permissions": []
+              }
+          ]
+      }
+order: 1000

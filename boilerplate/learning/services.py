@@ -243,12 +243,12 @@ def filter_notes_for_user(queryset, user):
     return queryset.filter(memberships__user=user, memberships__is_owner=True).distinct()
 
 def archive_note(*, note_id: int) -> Note:
-    """Mark a note as archived using a row lock for consistency."""
+    """Mark a note as un/archived using a row lock for consistency."""
 
     # Lock the row to avoid concurrent updates during the archive operation.
     with transaction.atomic():
         note = Note.objects.select_for_update().get(pk=note_id)
-        note.is_archived = True
+        note.is_archived = note.is_archived != True
         note.save(update_fields=["is_archived", "updated_at"])
 
     return note

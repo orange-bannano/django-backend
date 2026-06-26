@@ -1,0 +1,52 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/api/users/
+  method: GET
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Fri, 26 Jun 2026 17:48:15 GMT
+    Server: WSGIServer/0.2 CPython/3.14.0
+    Content-Type: application/json
+    X-Frame-Options: DENY
+    Content-Length: "383"
+    Vary: Cookie
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: same-origin
+    Cross-Origin-Opener-Policy: same-origin
+    djdt-request-id: 946675e9972348b580ae37c7f6b989ae
+    Server-Timing: TimerPanel_utime;dur=0;desc="User CPU time", TimerPanel_stime;dur=0;desc="System CPU time", TimerPanel_total;dur=0;desc="Total CPU time", TimerPanel_total_time;dur=43.01689984276891;desc="Elapsed time", SQLPanel_sql_time;dur=4.016599850729108;desc="SQL 5 queries", CachePanel_total_time;dur=3.5198000259697437;desc="Cache 5 Calls"
+  body:
+    type: text
+    content: |-
+      {
+          "users": [
+              {
+                  "username": "admin@gmail.com",
+                  "is_active": true,
+                  "is_logged_in": true
+              },
+              {
+                  "username": "employee@gmail.com",
+                  "is_active": true,
+                  "is_logged_in": false
+              },
+              {
+                  "username": "manager@gmail.com",
+                  "is_active": true,
+                  "is_logged_in": true
+              },
+              {
+                  "username": "new user",
+                  "is_active": false,
+                  "is_logged_in": false
+              },
+              {
+                  "username": "soham@gmail.com",
+                  "is_active": true,
+                  "is_logged_in": false
+              }
+          ]
+      }
+order: 1000

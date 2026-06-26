@@ -1,0 +1,45 @@
+$kind: http-request
+description: |-
+  Registers a new user account.  
+  Requires Admin privilege.
+
+  **Request Body (JSON):**
+
+  - `email` (string, required) — Email address for the new account
+      
+  - `password` (string, required) — Password for the new account
+      
+  - `first_name` (string, optional) — User's first name, default user_name
+      
+  - `last_name` (string, optional) — User's last name, default first_name
+      
+  - `user_name` (string, optional) — User name, default email
+      
+  - group (list, optional) — Groups which has the user, default 'Employee'
+url: http://127.0.0.1:8000/api/register/
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"email\": \"newuser@example.com\",\r
+
+    \    \"user_name\": \"new user\",\r
+
+    \    \"password\": \"sohamsoham\",\r
+
+    \    \"first_name\": \"Ashok\",\r
+
+    \    \"last_name\": \"Kumar\",\r
+
+    \    \"groups\": [\r
+
+    \        \"Employee\",\r
+
+    \        \"Group A\"\r
+
+    \    ]\r
+
+    }"
+examples: ./.resources/Create user.resources/examples
+order: 8000

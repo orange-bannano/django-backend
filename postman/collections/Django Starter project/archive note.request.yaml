@@ -1,0 +1,10 @@
+$kind: http-request
+description: |-
+  ```
+  Toggels archive status of a note and return the updated resource.
+  Requires Idempotency Key.
+
+   ```
+url: http://127.0.0.1:8000/api/<int:note_id>/archive/
+method: POST
+order: 17000

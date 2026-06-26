@@ -1,0 +1,8 @@
+$kind: http-request
+description: |-
+  Returns the profile information of the currently authenticated user.
+  Requires Basic Authentication.
+url: http://127.0.0.1:8000/api/me/
+method: GET
+examples: ./.resources/current user.resources/examples
+order: 10000

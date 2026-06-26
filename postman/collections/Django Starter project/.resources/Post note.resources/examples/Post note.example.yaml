@@ -1,0 +1,35 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/api/notes/
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \    \"title\": \"Django ORM basics\",\r
+
+      \    \"body\": \"Review select_related and prefetch_related.\"\r
+
+      }"
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Date: Fri, 26 Jun 2026 17:51:00 GMT
+    Server: WSGIServer/0.2 CPython/3.14.0
+    Content-Type: application/json
+    X-Frame-Options: DENY
+    Content-Length: "48"
+    Vary: Cookie
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: same-origin
+    Cross-Origin-Opener-Policy: same-origin
+    djdt-request-id: e5cad716a759431688909e21c665de1b
+    Server-Timing: TimerPanel_utime;dur=0;desc="User CPU time", TimerPanel_stime;dur=0;desc="System CPU time", TimerPanel_total;dur=0;desc="Total CPU time", TimerPanel_total_time;dur=36.22309979982674;desc="Elapsed time", SQLPanel_sql_time;dur=2.096300246194005;desc="SQL 3 queries", CachePanel_total_time;dur=2.3952999617904425;desc="Cache 2 Calls"
+  body:
+    type: text
+    content: |-
+      {
+          "error": "Idempotency-Key header is required."
+      }
+order: 1000

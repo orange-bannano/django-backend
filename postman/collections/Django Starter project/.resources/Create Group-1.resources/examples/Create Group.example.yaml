@@ -1,0 +1,43 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/api/register-group/
+  method: POST
+  body:
+    type: json
+    content: "{\r
+
+      \t\"group\": \"Group A\",\r
+
+      \t\"permission\": [\r
+
+      \t\t\"change_note\"\r
+
+      \t]\r
+
+      }"
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Date: Fri, 26 Jun 2026 17:36:54 GMT
+    Server: WSGIServer/0.2 CPython/3.14.0
+    Content-Type: application/json
+    X-Frame-Options: DENY
+    Content-Length: "60"
+    Vary: Cookie
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: same-origin
+    Cross-Origin-Opener-Policy: same-origin
+    djdt-request-id: 358b0b0ba6434fc3b76a1c410ba03c48
+    Server-Timing: TimerPanel_utime;dur=0;desc="User CPU time", TimerPanel_stime;dur=0;desc="System CPU time", TimerPanel_total;dur=0;desc="Total CPU time", TimerPanel_total_time;dur=68.12749989330769;desc="Elapsed time", SQLPanel_sql_time;dur=25.394199416041374;desc="SQL 8 queries", CachePanel_total_time;dur=0;desc="Cache 0 Calls"
+  body:
+    type: text
+    content: |-
+      {
+          "id": 8,
+          "name": "Group A",
+          "permissions": [
+              "change_note"
+          ]
+      }
+order: 1000

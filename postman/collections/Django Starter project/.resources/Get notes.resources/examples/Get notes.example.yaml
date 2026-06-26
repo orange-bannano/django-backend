@@ -1,0 +1,59 @@
+$kind: http-example
+request:
+  url: http://127.0.0.1:8000/api/notes/
+  method: GET
+  headers:
+    Idempotency-Key: c99bf7e4-8d4e-4f18-ba90-50f924376c9c
+  queryParams:
+    - key: limit
+      value: "3"
+      disabled: true
+      description: Number of rows seen at a time.
+    - key: offset
+      value: "0"
+      disabled: true
+      description: Number of rows skiped from beginning
+    - key: sort
+      value: -title
+      disabled: true
+      description: sort order
+    - key: title
+      value: django
+      disabled: true
+      description: title search keyword
+    - key: title
+      value: python
+      disabled: true
+    - key: include_archived
+      value: "1"
+      disabled: true
+      description: 1 = true
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Date: Fri, 26 Jun 2026 17:55:22 GMT
+    Server: WSGIServer/0.2 CPython/3.14.0
+    Content-Type: application/json
+    X-Frame-Options: DENY
+    Content-Length: "107"
+    Vary: Cookie
+    X-Content-Type-Options: nosniff
+    Referrer-Policy: same-origin
+    Cross-Origin-Opener-Policy: same-origin
+    djdt-request-id: 1c7f94475fd0494a93abace9a0d3ea60
+    Server-Timing: TimerPanel_utime;dur=0;desc="User CPU time", TimerPanel_stime;dur=0;desc="System CPU time", TimerPanel_total;dur=0;desc="Total CPU time", TimerPanel_total_time;dur=51.14919994957745;desc="Elapsed time", SQLPanel_sql_time;dur=8.515299996361136;desc="SQL 8 queries", CachePanel_total_time;dur=0;desc="Cache 0 Calls"
+  body:
+    type: text
+    content: |-
+      {
+          "notes": [],
+          "meta": {
+              "limit": 10,
+              "offset": 0,
+              "count": 0,
+              "next_offset": null,
+              "previous_offset": null
+          }
+      }
+order: 1000

@@ -1,0 +1,22 @@
+$kind: http-request
+description: |-
+  Authenticates a user with email and password credentials. Returns a session token or cookie on success.
+
+  **Request Body (JSON):**
+
+  - `email` (string, required) — User's email address
+      
+  - `password` (string, required) — User's password
+url: http://127.0.0.1:8000/api/login/
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"email\": \"manager@gmail.com\",\r
+
+    \    \"password\": \"sohamsoham\"\r
+
+    }"
+examples: ./.resources/login.resources/examples
+order: 5000
