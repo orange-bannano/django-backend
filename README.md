@@ -1,29 +1,47 @@
-## For business logic:
-## [VIEW](boilerplate/learning/views.py)
-## [SETTINGS](boilerplate/boilerplate/settings.py)
-
 # django-backend
 
+Aim: To provides a template for constructing a web service using Django framework, easy to copy and paste.
+Objective: Serve as a prerequisite and learning opportunity to understand cybersecurity implementations
+
 This repository is part of the Internship project @ [Samaro AI](https://samaro.ai/)
-It includes a compact backend web development knowledge base & code focused on best practices and habits to ensure efficency and security.
-Refer the [progress sheet](https://docs.google.com/spreadsheets/d/1VsqfiaUyQ_vsXXupU7ZZjFJQfqHpv41TX4E4Je0PoqM/edit?gid=0#gid=0) for currents status and milestones of this project.
+Refer the [progress sheet](https://docs.google.com/spreadsheets/d/1VsqfiaUyQ_vsXXupU7ZZjFJQfqHpv41TX4E4Je0PoqM/edit?gid=0#gid=0) for currents status, features and milestones of this project.
 
 ## Learning App Quickstart
 
-The `boilerplate` folder contains a minimal Django project with a `learning` app.
-It demonstrates the practical example of critcical backend web service concepts (discussed below).
+Code includes a compact backend web development knowledge base focused on best practices.
+The `boilerplate` (project) folder contains a minimal Django project with a `learning` app.
 
-## The API usage details of the endpoint view within this project can be found [here](docs/apiDoc.md)
+### The API usage details of the endpoint view within this project can be found [here](docs/apiDoc.md) and sample request/response [here](docs/django.postman_collection.json)
 
-### Quickstart (from repo root)
-```powershell
-cd C:\Users\praty\PycharmProjects\django-backend\boilerplate
+### Overview
+The web app serve an office memorandum management system, allowing users to create, read, update, and delete (CRUD) memos (Notes).
+It also includes user authentication and authorization features by implementing user roles, which are:
+'Employee' = can view/modify owned notes,
+'Manager' = can view/modify employee and owned notes but not of other managers,
+'Admin' = can view/modify/delete all notes.
+Any authenticated user can add.
+
+### Quickstart
+
+Fresh start? Refer [Project Initialization](django-init.txt) and [MySQL DB and Redis cache setup](setupCommands.txt)
+
+```
+git clone https://github.com/orange-bannano/django-backend.git
+cd \boilerplate\
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r ..\requirements.txt
 python manage.py migrate
 python manage.py runserver
 ```
+
+## For business logic:
+### [VIEWS DEALING WITH CRUD AND FEATURES](boilerplate/learning/views.py)
+### [VIEWS DEALING WITH AUTHENTICATION](boilerplate/learning/auth_views.py)
+### [MODELS](boilerplate/learning/models.py)
+### [SETTINGS](boilerplate/boilerplate/settings.py)
+Other file are helper, making the logic more comprehensive, explore them as you need ie, as you read thought above views.
+Logic, instructions and customizations are documented within the code file using comments, online docs and spacing.
 
 ## Theory documentation Overview
 
