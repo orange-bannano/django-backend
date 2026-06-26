@@ -1,9 +1,11 @@
 from __future__ import annotations
-from django.contrib.auth import authenticate, login, logout, get_user_model
+
+import django.core.validators
+from django.contrib.auth import authenticate, login, logout, get_user_model, password_validation
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import Group, Permission
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -65,6 +67,7 @@ def is_authenticated_or_error(user):
 
 def is_admin(user):
     if user.groups.filter(name="Admin").exists() | user.is_superuser:
+        user.groups.filter()
         return True
     raise PermissionDenied  # Throws an HTTP 403 error
 
@@ -154,7 +157,7 @@ def logout_view(request):
     Flow: request -> CSRF check -> clear session -> response.
 
     Response:
-        200: {"status": "logged out"}
+        200: {"status": "logged out","login session length (in seconds)": 5.5243}
 
     Postman:
         Method: POST
@@ -170,7 +173,7 @@ def logout_view(request):
     mark_user_logged_out(user)
 
     return JsonResponse({"status": "logged out",
-                         "last login": user.last_login
+                         "login session length (in seconds)": (timezone.now() - user.last_login).total_seconds()
                          })
 
 @user_passes_test(is_authenticated_or_error)
@@ -183,7 +186,18 @@ def current_user_view(request):
     Flow: request -> check auth -> return user -> response.
 
     Response (authenticated):
-        200: {"user": {"id": 1, "email": "user@example.com"}}
+        200: {
+            "user": {
+                    "id": 8,
+                    "email": "admin@gmail.com",
+                    "username": "admin@gmail.com",
+                    "groups": ["Admin", "Group B"]
+                    "is_staff": false,
+                    "last login": "2026-06-25T19:20:28.958Z"
+                    "first_name": "Ashok",
+                    "last_name": "Kumar","
+                    }
+            }
 
     Response (unauthenticated):
         401: {"error": "Authentication required."}
@@ -207,8 +221,12 @@ def current_user_view(request):
         "user": {
             "id": request.user.id,
             "email": request.user.email,
+            "username": request.user.username,
+            "groups": [serialize_group(group) for group in request.user.groups.all()],
             "is_staff": request.user.is_staff,
             "last_login": request.user.last_login,
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
         }
     })
 
@@ -268,8 +286,7 @@ def update_password(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def deactivate_own_account(request):
-    """Deactivate the current user's account and log them out.
-
+    """Deactivate the current user's account and log them out. Locks the user out, preventing them to perform CRUD operations. They can still login
     Postman:
         Method: POST
         URL: /api/deactivate/
@@ -290,13 +307,9 @@ def deactivate_own_account(request):
 @require_http_methods(["POST"])
 def create_user_view(request):
     """
-    Register a new user with email, password, and optional name.
+    Register a new user with email, password, and optional user name. Accessible to users with Admin privilege.
 
     Flow: request -> CSRF check -> validate -> create User -> create session -> response.
-
-    Clients send:
-        POST /api/register/
-        {"email": "newuser@example.com", "password": "secret", "first_name": "Alice"}
 
     Response (success):
         201: {"user": {"id": 2, "email": "newuser@example.com"}}
@@ -313,9 +326,11 @@ def create_user_view(request):
         Body:
         {
             "email": "newuser@example.com",
+            "user_name":"new user",
             "password": "secret123",
-            "first_name": "Alice",
-            "role": "Viewer"
+            "first_name": "Ashok",
+            "last_name": "Kumar",
+            "groups": ["Employee", "Group A"]
         }
         Auth: admin session cookie
     """
@@ -326,9 +341,10 @@ def create_user_view(request):
 
     # Extract fields and validate format.
     email = payload.get("email", "").strip()
+    username = payload.get("user_name", email).strip()
     password = payload.get("password", "").strip()
     first_name = payload.get("first_name", "").strip()
-    role = payload.get("role", "Employee").strip()
+    last_name = payload.get("last_name", first_name).strip()
 
     # Guard against missing required fields.
     if not email or not password:
@@ -338,11 +354,11 @@ def create_user_view(request):
         )
 
     # Validate email format (simple check; use django.core.validators for production).
-    if "@" not in email:
-        return JsonResponse(
-            {"error": "Invalid email format."},
-            status=400,
-        )
+
+    try:
+        django.core.validators.validate_email(email)
+    except ValidationError as e:
+        return JsonResponse({"error": "Invalid Email, which is necessary"}, status=400, )
 
     # Check for duplicate email (prevent unique constraint violation later).
     if User.objects.filter(email=email).exists():
@@ -354,25 +370,41 @@ def create_user_view(request):
     # Enforce a minimal password length for this learning example. In a
     # production system prefer Django's AUTH_PASSWORD_VALIDATORS setting which
     # provides more comprehensive checks (common password lists, numeric checks, etc.).
-    if len(password) < 8:
+    try:
+        # 1. Manually validate the password against AUTH_PASSWORD_VALIDATORS
+        password_validation.validate_password(password)
+    except ValidationError as e:
+        return JsonResponse({"error": "Invalid Password"}, status=400,)
+
+    # group, _ = Group.objects.get(name=role)
+    unfiltered_groups = payload.get("groups", ["Employee"])
+    if isinstance(unfiltered_groups, str):
+        unfiltered_groups = [unfiltered_groups.strip()]
+    elif isinstance(unfiltered_groups, list):
+        unfiltered_groups = [
+            str(codename).strip()
+            for codename in unfiltered_groups
+            if str(codename).strip()
+        ]
+    else:
         return JsonResponse(
-            {"error": "Password must be at least 8 characters."},
+            {"error": "Group or Role must be a string or list of strings."},
             status=400,
         )
-
-    group, _ = Group.objects.get_or_create(name=role)
+    groups = list(Group.objects.filter(codename__in=unfiltered_groups))
 
     # Create the user with the validated data.
     user = User.objects.create_user(
-        username=email,  # Django requires username; use email for simplicity.
+        username=username,  # Django requires username; use email for simplicity.
         email=email,
         password=password,
     )
-    user.groups.add(group)
+    user.groups.add(*groups)
     # At this point, user is a User object that has already been saved
     # to the database. You can continue to change its attributes
     # if you want to change other fields.
     user.first_name = first_name
+    user.last_name = last_name
     user.save()
 
     # Automatically log in the new user using the default backend.
@@ -382,15 +414,17 @@ def create_user_view(request):
     return JsonResponse({
         "user": {
             "id": user.id,
+            # "user_name": user.username,
             "email": user.email,
-            "first_name": user.first_name,
+            # "first_name": user.first_name,
+            # "last_name": user.last_name,
         }
     }, status=201)
 
-
+@user_passes_test(is_admin)
 @require_http_methods(["GET"])
 def registered_users_view(request):
-    """Return registered users with active and logged-in status."""
+    """Return registered users with active and logged-in status. Accessible to users with Admin privilege."""
 
     users = User.objects.order_by("username").only("id", "username", "is_active")
     return JsonResponse(
@@ -429,6 +463,18 @@ from django.db import IntegrityError
 @require_http_methods(["POST"])
 def create_group_view(request):
     """Create a group and assign permissions.
+
+    Response (success):
+        201: {"id": 2, "name": "Manager", "permissions": ["view_note", "add_note", "change_note"]}
+
+    Response (conflict):
+        409: {"error": "Group already exists."}
+
+    Response (invalid input):
+        400: {"error": "Unknown permission(s): {permission1, permission2}"}
+        400: {"error": "Group name is required."}
+        400: {"error": "permission must be a string or list of strings."}
+        400: {"error": "..."}
 
     Postman:
         Method: POST
@@ -485,11 +531,11 @@ def create_group_view(request):
     #         status=400,
     #     )
 
-    if not permission_codenames:
-        return JsonResponse(
-            {"error": "At least one permission codename is required."},
-            status=400,
-        )
+    # if not permission_codenames:
+    #     return JsonResponse(
+    #         {"error": "At least one permission codename is required."},
+    #         status=400,
+    #     )
 
     permissions = list(Permission.objects.filter(codename__in=permission_codenames))
     found_codenames = {permission.codename for permission in permissions}
@@ -509,7 +555,7 @@ def create_group_view(request):
     except IntegrityError:
         return JsonResponse(
             {"error": "Group already exists."},
-            status=400,
+            status=409,
         )
 
     group.permissions.add(*permissions)
