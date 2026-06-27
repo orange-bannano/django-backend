@@ -1,7 +1,10 @@
 # django-backend
 
-Aim: To provides a template for constructing a web service using Django framework, easy to copy and paste.
+Aim: To provides a template for constructing a web service using **vanilla Django framework**, easy to copy and paste.
 Objective: Serve as a prerequisite and learning opportunity to understand cybersecurity implementations
+
+Instead of using Django Rest Framework (DRF) or other third-party libraries, this project focuses on implementing the backend logic using only the built-in features of Django.
+This approach allows developers to gain a deeper understanding of how thing works under the hood.
 
 This repository is part of the Internship project @ [Samaro AI](https://samaro.ai/)
 Refer the [progress sheet](https://docs.google.com/spreadsheets/d/1VsqfiaUyQ_vsXXupU7ZZjFJQfqHpv41TX4E4Je0PoqM/edit?gid=0#gid=0) for currents status, features and milestones of this project.

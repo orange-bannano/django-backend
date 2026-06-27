@@ -1,0 +1,1502 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Django Learning API",
+    "version": "1.0.0",
+    "description": "OpenAPI schema for the learning app JSON API mounted at `/api/`. Authentication uses Django session cookies (`sessionid`). Mutating endpoints that support idempotency require an `Idempotency-Key` request header when the idempotency feature flag is enabled."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000",
+      "description": "Local development"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Hello",
+      "description": "Chunk 0 — static hello page"
+    },
+    {
+      "name": "Notes",
+      "description": "Chunk 0/2 — note CRUD, filtering, pagination, and archive"
+    },
+    {
+      "name": "Idempotency",
+      "description": "Chunk 0 — idempotency feature flag (admin only)"
+    },
+    {
+      "name": "Auth",
+      "description": "Chunk 1 — login, logout, and current user"
+    },
+    {
+      "name": "Users",
+      "description": "Chunk 1 — registration and user administration"
+    },
+    {
+      "name": "Groups",
+      "description": "Chunk 1 — group and permission management"
+    }
+  ],
+  "paths": {
+    "/api/": {
+      "get": {
+        "operationId": "sayHello",
+        "tags": ["Hello"],
+        "summary": "Render the hello HTML page",
+        "description": "Returns a rendered HTML template (`hello.html`). This endpoint does not return JSON.",
+        "responses": {
+          "200": {
+            "description": "HTML hello page",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/notes/": {
+      "get": {
+        "operationId": "listNotes",
+        "tags": ["Notes"],
+        "summary": "List notes accessible to the current user",
+        "description": "Returns a paginated list of notes with optional filtering and sorting. Requires an authenticated session (`user_passes_test`).",
+        "security": [{ "sessionAuth": [] }],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of notes to return (default 10, max 50).",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 50,
+              "default": 10
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Number of notes to skip (default 0, max 10000).",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000,
+              "default": 0
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Sort field. Prefix with `-` for descending order. Allowed fields: `title`, `created_at`.",
+            "schema": {
+              "type": "string",
+              "default": "-created_at",
+              "enum": ["title", "-title", "created_at", "-created_at"]
+            }
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "description": "Case-insensitive substring filter on note title. Repeat the parameter for OR matching (e.g. `?title=django&title=python`).",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": true
+          },
+          {
+            "name": "exact_note_id",
+            "in": "query",
+            "description": "Filter to a single note by exact ID. When set, title filters are ignored.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "include_archived",
+            "in": "query",
+            "description": "Include archived notes when set to `1`.",
+            "schema": {
+              "type": "string",
+              "enum": ["0", "1"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated note list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid sort parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Sort field 'invalid' is not allowed. Choose from: {'title', 'created_at', 'is_archived'}"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createNote",
+        "tags": ["Notes"],
+        "summary": "Create a new note",
+        "description": "Creates a note owned by the authenticated user. Requires an authenticated session (`user_passes_test`). Rate-limited to 4 requests per minute per IP. Supports idempotency via the `Idempotency-Key` header.",
+        "security": [{ "sessionAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKeyHeader" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Note created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "description": "Unauthenticated session (`user_passes_test`) or rate limit exceeded (django-ratelimit, 4/min per IP on POST). Both return HTML.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "$ref": "#/components/responses/IdempotencyConflict"
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateNote",
+        "tags": ["Notes"],
+        "summary": "Update an existing note",
+        "description": "Updates a note by `note_id` in the JSON body. Requires an authenticated session (`user_passes_test`) and permission to modify the note. Supports idempotency via the `Idempotency-Key` header.",
+        "security": [{ "sessionAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKeyHeader" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Note updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "description": "Unauthenticated session (HTML via `user_passes_test`) or insufficient permission to modify the note (JSON).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "You do not have permission to modify this note."
+                }
+              },
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/IdempotencyConflict"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteNote",
+        "tags": ["Notes"],
+        "summary": "Delete a note (admin only)",
+        "description": "Permanently deletes a note by `note_id` in the JSON body. Requires an authenticated session (`user_passes_test`) and admin privileges. Supports idempotency via the `Idempotency-Key` header.",
+        "security": [{ "sessionAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/IdempotencyKeyHeader" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteDeleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Note deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteDeleteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "description": "Unauthenticated session (HTML via `user_passes_test`) or admin access required (JSON).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Admin access required."
+                }
+              },
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/IdempotencyConflict"
+          }
+        }
+      }
+    },
+    "/api/notes/{note_id}/archive/": {
+      "post": {
+        "operationId": "archiveNote",
+        "tags": ["Notes"],
+        "summary": "Toggle archive status of a note",
+        "description": "Toggles the `is_archived` flag on the note and returns the updated resource. Requires an authenticated session (`user_passes_test`). Supports idempotency via the `Idempotency-Key` header.",
+        "security": [{ "sessionAuth": [] }],
+        "parameters": [
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "description": "Primary key of the note to archive/unarchive.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKeyHeader" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Note archive status toggled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NoteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid idempotency key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Idempotency-Key header is required."
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/IdempotencyConflict"
+          }
+        }
+      }
+    },
+    "/api/idempotency/": {
+      "get": {
+        "operationId": "getIdempotencyFlag",
+        "tags": ["Idempotency"],
+        "summary": "Get idempotency feature flag state (admin only)",
+        "description": "Returns the current idempotency feature flag. Requires an authenticated admin session (`user_passes_test(is_admin)`).",
+        "security": [{ "sessionAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Current idempotency flag state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdempotencyFlagResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "setIdempotencyFlag",
+        "tags": ["Idempotency"],
+        "summary": "Set or toggle the idempotency feature flag (admin only)",
+        "description": "If the request body omits `enabled`, the flag is toggled. If `enabled` is provided, it must be a boolean. Requires an authenticated admin session (`user_passes_test(is_admin)`).",
+        "security": [{ "sessionAuth": [] }],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IdempotencyFlagRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated idempotency flag state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IdempotencyFlagResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/register/": {
+      "post": {
+        "operationId": "registerUser",
+        "tags": ["Users"],
+        "summary": "Register a new user (admin only)",
+        "description": "Creates a new user account and logs them in. Requires an authenticated admin session.",
+        "security": [{ "sessionAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterUserRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created and session established",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterUserResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missingFields": {
+                    "value": {
+                      "error": "Email and password are required."
+                    }
+                  },
+                  "invalidEmail": {
+                    "value": {
+                      "error": "Invalid Email, which is necessary"
+                    }
+                  },
+                  "invalidPassword": {
+                    "value": {
+                      "error": "Invalid Password"
+                    }
+                  },
+                  "invalidGroups": {
+                    "value": {
+                      "error": "Group or Role must be a string or list of strings."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "description": "Email already registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Email already exists."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/login/": {
+      "post": {
+        "operationId": "login",
+        "tags": ["Auth"],
+        "summary": "Authenticate and create a session",
+        "description": "Authenticates via email and password, creates a session cookie, and returns basic user info. Rate-limited to 10 requests per minute per IP.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication successful; session cookie set",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Django session cookie (`sessionid`).",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing credentials or malformed JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missingFields": {
+                    "value": {
+                      "error": "Email and password are required."
+                    }
+                  },
+                  "invalidJson": {
+                    "value": {
+                      "error": "Content-Type must be application/json."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Invalid credentials."
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "IP rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Rate limit exceeded"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/logout/": {
+      "post": {
+        "operationId": "logout",
+        "tags": ["Auth"],
+        "summary": "Clear the current session",
+        "description": "Logs out the authenticated user and clears the session cookie.",
+        "security": [{ "sessionAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Session cleared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/me/": {
+      "get": {
+        "operationId": "getCurrentUser",
+        "tags": ["Auth"],
+        "summary": "Get the currently authenticated user",
+        "security": [{ "sessionAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Current user profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentUserResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/users/": {
+      "get": {
+        "operationId": "listRegisteredUsers",
+        "tags": ["Users"],
+        "summary": "List registered users (admin only)",
+        "description": "Returns all registered users with active and logged-in status. Requires an authenticated admin session.",
+        "security": [{ "sessionAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Registered user list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisteredUsersResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/groups/": {
+      "get": {
+        "operationId": "listGroups",
+        "tags": ["Groups"],
+        "summary": "List all groups and their permissions",
+        "responses": {
+          "200": {
+            "description": "Group list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/register-group/": {
+      "post": {
+        "operationId": "createGroup",
+        "tags": ["Groups"],
+        "summary": "Create a group with permissions (admin only)",
+        "description": "Creates a new Django auth group and assigns permissions by codename. Requires an authenticated admin session.",
+        "security": [{ "sessionAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGroupRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Group created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missingName": {
+                    "value": {
+                      "error": "Group name is required."
+                    }
+                  },
+                  "unknownPermission": {
+                    "value": {
+                      "error": "Unknown permission(s): add_foo"
+                    }
+                  },
+                  "invalidPermissionType": {
+                    "value": {
+                      "error": "permission must be a string or list of strings."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "description": "Group name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Group already exists."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/delete/": {
+      "delete": {
+        "operationId": "deleteOwnAccount",
+        "tags": ["Users"],
+        "summary": "Permanently delete the current user's account",
+        "description": "Hard-deletes the authenticated user, logs them out, and clears the session.",
+        "security": [{ "sessionAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Account permanently deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                },
+                "example": {
+                  "status": "permanent deleted"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/deactivate/": {
+      "post": {
+        "operationId": "deactivateOwnAccount",
+        "tags": ["Users"],
+        "summary": "Soft-delete (deactivate) the current user's account",
+        "description": "Sets `is_active` to false, logs the user out, and clears the session. The user can still log in but cannot perform CRUD operations.",
+        "security": [{ "sessionAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Account deactivated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                },
+                "example": {
+                  "status": "soft deleted, logged out"
+                }
+              }
+            }
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/reset/": {
+      "post": {
+        "operationId": "updatePassword",
+        "tags": ["Users"],
+        "summary": "Update the current user's password",
+        "description": "Sets a new password for the authenticated user, then logs them out.",
+        "security": [{ "sessionAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password updated; session cleared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                },
+                "example": {
+                  "status": "password updated, please log in again"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sessionAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sessionid",
+        "description": "Django session cookie obtained from `POST /api/login/` or `POST /api/register/`."
+      }
+    },
+    "parameters": {
+      "IdempotencyKeyHeader": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "description": "Required when the idempotency feature flag is enabled. Duplicate keys return the cached response; concurrent duplicates return 409 while pending.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Malformed JSON, invalid content type, or validation error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/ErrorResponse" },
+                { "$ref": "#/components/schemas/FieldErrorsResponse" }
+              ]
+            },
+            "examples": {
+              "singleError": {
+                "value": {
+                  "error": "Content-Type must be application/json."
+                }
+              },
+              "fieldErrors": {
+                "value": {
+                  "errors": {
+                    "title": "Title is required."
+                  }
+                }
+              },
+              "invalidNoteId": {
+                "value": {
+                  "error": "note_id must be a valid integer."
+                }
+              },
+              "invalidBoolean": {
+                "value": {
+                  "error": "enabled must be a boolean."
+                }
+              }
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "Authentication required or insufficient privileges (Django `user_passes_test` raises PermissionDenied → HTTP 403)",
+        "content": {
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "error": "Note not found."
+            }
+          }
+        }
+      },
+      "IdempotencyConflict": {
+        "description": "Duplicate idempotency key while the original request is still pending",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/IdempotencyPendingResponse"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FieldErrorsResponse": {
+        "type": "object",
+        "required": ["errors"],
+        "properties": {
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Field name to validation message mapping."
+          }
+        },
+        "additionalProperties": false
+      },
+      "StatusResponse": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NoteOwner": {
+        "type": "object",
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "User ID of the note owner."
+          }
+        },
+        "additionalProperties": false,
+        "nullable": true
+      },
+      "NoteMember": {
+        "type": "object",
+        "required": ["user_id", "email", "role"],
+        "properties": {
+          "user_id": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["Employee", "Manager", "Admin"]
+          }
+        },
+        "additionalProperties": false
+      },
+      "Note": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "body",
+          "is_archived",
+          "owner",
+          "members",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 3000
+          },
+          "is_archived": {
+            "type": "boolean"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/NoteOwner"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NoteMember"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "required": ["limit", "offset", "count", "next_offset", "previous_offset"],
+        "properties": {
+          "limit": {
+            "type": "integer"
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Total number of matching notes."
+          },
+          "next_offset": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Offset for the next page, or null if on the last page."
+          },
+          "previous_offset": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Offset for the previous page, or null if on the first page."
+          }
+        },
+        "additionalProperties": false
+      },
+      "NoteListResponse": {
+        "type": "object",
+        "required": ["notes", "meta"],
+        "properties": {
+          "notes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Note"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NoteResponse": {
+        "type": "object",
+        "required": ["note"],
+        "properties": {
+          "note": {
+            "$ref": "#/components/schemas/Note"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NoteCreateRequest": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Required. Must be non-empty after trimming."
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 3000,
+            "default": ""
+          }
+        },
+        "additionalProperties": false
+      },
+      "NoteUpdateRequest": {
+        "type": "object",
+        "required": ["note_id"],
+        "properties": {
+          "note_id": {
+            "type": "integer",
+            "description": "Primary key of the note to update."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Optional. Defaults to the current title if omitted."
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 3000,
+            "description": "Optional. Defaults to the current body if omitted."
+          }
+        },
+        "additionalProperties": false
+      },
+      "NoteDeleteRequest": {
+        "type": "object",
+        "required": ["note_id"],
+        "properties": {
+          "note_id": {
+            "type": "integer",
+            "description": "Primary key of the note to delete."
+          }
+        },
+        "additionalProperties": false
+      },
+      "NoteDeleteResponse": {
+        "type": "object",
+        "required": ["status", "note_id"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["deleted"]
+          },
+          "note_id": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false
+      },
+      "IdempotencyFlagResponse": {
+        "type": "object",
+        "required": ["idempotency_enabled"],
+        "properties": {
+          "idempotency_enabled": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "IdempotencyFlagRequest": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Explicitly set the flag. Omit to toggle the current state."
+          }
+        },
+        "additionalProperties": false
+      },
+      "IdempotencyPendingResponse": {
+        "type": "object",
+        "required": ["error", "idempotency_key"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": ["Request is already pending."]
+          },
+          "idempotency_key": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "LoginUser": {
+        "type": "object",
+        "required": ["id", "email", "is_staff"],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "is_staff": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LoginResponse": {
+        "type": "object",
+        "required": ["user"],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/LoginUser"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LogoutResponse": {
+        "type": "object",
+        "required": ["status", "login session length (in seconds)"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["logged out"]
+          },
+          "login session length (in seconds)": {
+            "type": "number",
+            "format": "float",
+            "description": "Elapsed seconds between login and logout based on `last_login`."
+          }
+        },
+        "additionalProperties": false
+      },
+      "Group": {
+        "type": "object",
+        "required": ["id", "name", "permissions"],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Django permission codename (e.g. `view_note`, `add_note`)."
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CurrentUser": {
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "username",
+          "groups",
+          "is_staff",
+          "last_login",
+          "first_name",
+          "last_name"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "username": {
+            "type": "string"
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Group"
+            }
+          },
+          "is_staff": {
+            "type": "boolean"
+          },
+          "last_login": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "last_name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CurrentUserResponse": {
+        "type": "object",
+        "required": ["user"],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/CurrentUser"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegisteredUser": {
+        "type": "object",
+        "required": ["username", "is_active", "is_logged_in"],
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "is_logged_in": {
+            "type": "boolean",
+            "description": "Cache-backed logged-in marker, not the Django session itself."
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegisteredUsersResponse": {
+        "type": "object",
+        "required": ["users"],
+        "properties": {
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegisteredUser"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "GroupListResponse": {
+        "type": "object",
+        "required": ["groups"],
+        "properties": {
+          "groups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Group"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegisterUserRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "user_name": {
+            "type": "string",
+            "description": "Defaults to `email` if omitted."
+          },
+          "password": {
+            "type": "string",
+            "description": "Must pass Django AUTH_PASSWORD_VALIDATORS."
+          },
+          "first_name": {
+            "type": "string",
+            "description": "Defaults to `user_name` if omitted."
+          },
+          "last_name": {
+            "type": "string",
+            "description": "Defaults to `first_name` if omitted."
+          },
+          "groups": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ],
+            "default": ["Employee"],
+            "description": "Group name(s) to assign. Unknown names are silently ignored."
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegisterUser": {
+        "type": "object",
+        "required": ["id", "email"],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegisterUserResponse": {
+        "type": "object",
+        "required": ["user"],
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/RegisterUser"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateGroupRequest": {
+        "type": "object",
+        "required": ["group"],
+        "properties": {
+          "group": {
+            "type": "string",
+            "description": "Name of the group to create."
+          },
+          "permission": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ],
+            "default": ["view_note"],
+            "description": "Permission codename(s) to assign. All must exist in the database."
+          }
+        },
+        "additionalProperties": false
+      },
+      "PasswordResetRequest": {
+        "type": "object",
+        "required": ["password"],
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "New password for the authenticated user."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
