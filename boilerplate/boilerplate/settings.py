@@ -13,47 +13,66 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 import os
 
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from repo-root .env (gitignored).
+load_dotenv(BASE_DIR.parent / '.env')
+
+
+def env_bool(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def env_list(name: str, default: str = '') -> list[str]:
+    raw = os.getenv(name, default)
+    return [item.strip() for item in raw.split(',') if item.strip()]
+
+
+# HTTP Strict Transport Security (HSTS) tells always use HTTPS, never use HTTP
+if env_bool('HSTS', False):
+    SECURE_HSTS_SECONDS = 31536000
+# Until nex year BROWSER itself uses HTTPS, after 1 year it may access using HTTP, if that time HSTS is turned off, if still turned on, another HSTS header is sent as cookie
+# Increase the time as the stability of TLS certificate is confirmed
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
+# Tells browsers to include this site in their HSTS preload list, ensuring HTTPS is enforced even on the first visit.
+# For rollback reasons suppose, TLS expires for domain (HTTPS fails) then HTTP access is not allowed on the browser, due to preload.
+# TURN ON after maturity of the site and TLS certificate stability is confirmed.
+
 # DEV SERVER DOES NOT ALLOW SSL/TSL
-# SECURE_SSL_REDIRECT = True
-# # HTTP Strict Transport Security (HSTS) tells always use HTTPS, never use HTTP
-# SECURE_HSTS_SECONDS = 31536000
-# # Until nex year BROWSER itself uses HTTPS, after 1 year it may access using HTTP, if that time HSTS is turned off, if still turned on, another HSTS header is sent as cookie
-# # Increase the time as the stability of TLS certificate is confirmed
-# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-# # SECURE_HSTS_PRELOAD = True
-# # Tells browsers to include this site in their HSTS preload list, ensuring HTTPS is enforced even on the first visit.
-# # For rollback reasons suppose, TLS expires for domain (HTTPS fails) then HTTP access is not allowed on the browser, due to preload.
-# # TURN ON after maturity of the site and TLS certificate stability is confirmed.
+SECURE_SSL_REDIRECT = env_bool('SSL', False)
+CSRF_COOKIE_SECURE = env_bool('SSL', False)
+SESSION_COOKIE_SECURE = env_bool('SSL', False)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y+(enu1o@2zv6t6b1n#p+02(08_8pd4*b29l##g+nrp6oijj=2'
+SECRET_KEY = os.getenv(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-y+(enu1o@2zv6t6b1n#p+02(08_8pd4*b29l##g+nrp6oijj=2',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env_bool('DJANGO_DEBUG', True)
 
-SESSION_COOKIE_AGE = 3600
+SESSION_COOKIE_AGE = int(os.getenv('SESSION_COOKIE_AGE', '3600'))
 # SESSIONS END WHEN AGE EXPIRES
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_EXPIRE_AT_BROWSER_CLOSE = env_bool('SESSION_EXPIRE_AT_BROWSER_CLOSE', False)
+
+# Public URLs consumed by the frontend config endpoint and OpenAPI.
+API_BASE_URL = os.getenv('API_BASE_URL', '').rstrip('/')
+SITE_BASE_URL = os.getenv('SITE_BASE_URL', 'http://127.0.0.1:8000').rstrip('/')
+ADMIN_URL = os.getenv('ADMIN_URL', '/admin/')
 
 # Application definition
-
-REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-}
-
-# Optional: Add metadata for your frontend generator
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'My Django API',
-    'DESCRIPTION': 'Automated schema for my frontend client',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
-}
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -65,7 +84,7 @@ INSTALLED_APPS = [
     'learning.apps.LearningConfig',
     "debug_toolbar", # useful for viewing sequel queries through the 'view', requests and response
     'schema_viewer',
-    'drf_spectacular',
+    # 'drf_spectacular',
 ]
 # The migrate command looks at the INSTALLED_APPS setting
 # and creates any necessary database tables according to the database settings in your boilerplate/settings.py file
@@ -84,12 +103,9 @@ MIDDLEWARE = [
 # Every HTTP/1.1 request requires a Host header telling the server which site you are trying to reach.
 # If web applications blindly trust this input to generate dynamic links, they become vulnerable.
 # Clients are redirect (302/1) to forbidden endpoint, resulting in Cache poisoning, password exposure, etc
-ALLOWED_HOSTS = ['.localhost', '127.0.0.1', '[::1]']
+ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,.localhost,[::1]')
 # White lists
 # Can be done in deployement server also
-
-# CSRF_COOKIE_SECURE = True
-# SESSION_COOKIE_SECURE = True
 
 ROOT_URLCONF = 'boilerplate.urls'
 
@@ -122,12 +138,12 @@ WSGI_APPLICATION = 'boilerplate.wsgi.application'
 # }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'my_django_db',          # Your MySQL database name
-        'USER': 'root',       # Your MySQL username
-        'PASSWORD': 'pass',     # Your MySQL password
-        'HOST': '127.0.0.1',             # Or 'localhost', or server IP
-        'PORT': '3306',                  # Default MySQL port
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.mysql'),
+        'NAME': os.getenv('DB_NAME', 'my_django_db'),
+        'USER': os.getenv('DB_USER', 'root'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'pass'),
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
@@ -202,7 +218,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR,'static')
+    os.path.join(BASE_DIR, 'static'),
+    ('frontend', os.path.join(BASE_DIR.parent, 'frontend')),
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
 
@@ -228,7 +245,7 @@ INTERNAL_IPS = [
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },

@@ -18,7 +18,18 @@ from debug_toolbar.toolbar import debug_toolbar_urls
 from django.contrib import admin
 from django.urls import include, path
 
+from learning.frontend_views import serve_frontend_config, serve_frontend_page
+
 urlpatterns = [
+    # Frontend runtime config (reads API_BASE_URL etc. from .env).
+    path('config.js', serve_frontend_config, name='frontend-config'),
+    # Frontend web app (session-cookie client for the JSON API).
+    path('', serve_frontend_page, {'page': ''}, name='frontend-home'),
+    path('login/', serve_frontend_page, {'page': 'login'}, name='frontend-login'),
+    path('notes/', serve_frontend_page, {'page': 'notes'}, name='frontend-notes'),
+    path('panel/', serve_frontend_page, {'page': 'panel'}, name='frontend-panel'),
+    path('account/', serve_frontend_page, {'page': 'account'}, name='frontend-account'),
+    path('logout/', serve_frontend_page, {'page': 'logout'}, name='frontend-logout'),
     # Django admin site routes.
     path('admin/', admin.site.urls),
     path('schema-viewer/', include('schema_viewer.urls')),
