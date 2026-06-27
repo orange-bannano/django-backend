@@ -15,7 +15,9 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
+from rest_framework.decorators import api_view
 
+from learning.auth_views import is_authenticated_or_error, is_admin
 from learning.models import Note, NoteMembership
 from learning.permissions import is_authenticated
 from learning.serializers import AllowlistValidator
@@ -38,7 +40,7 @@ User = get_user_model()
 # ============================================================================
 # CHUNK 0: BASIC CRUD AND CONSISTENCY
 # ============================================================================
-
+@api_view(['GET'])
 @csrf_exempt
 def say_hello(request):
     """Render a simple HTML template.
@@ -53,6 +55,7 @@ def say_hello(request):
 
 # 4 requests per minute per IP address or user, key = "user"
 @ratelimit(key="ip", rate="4/m", method="POST", block=True)
+@user_passes_test(is_authenticated_or_error)
 @csrf_exempt
 @require_http_methods(["GET", "POST", "PUT", "DELETE"])
 def notes_collection(request):
@@ -89,12 +92,6 @@ def notes_collection(request):
             "note_id": 12
         }
     """
-    if request.user.is_active != True:
-        return JsonResponse({"error": "User must be active in."}, status=401)
-
-    if not is_authenticated(request.user):
-        return JsonResponse({"error": "Authentication required."}, status=401)
-
     ### idempotency logic STARTS ###
     idempotency_cache_key = None
     idempotency_key = ""
@@ -268,6 +265,7 @@ def notes_collection(request):
     )
 
 @csrf_exempt
+@user_passes_test(is_authenticated_or_error)
 @require_http_methods(["POST"])
 def archive_note_view(request, note_id: int):
     """Archive a note and return the updated resource.
@@ -298,7 +296,7 @@ def archive_note_view(request, note_id: int):
     store_idempotent_response(idempotency_cache_key, response, idempotency_key)
     return response
 
-
+@user_passes_test(is_admin)
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def toggle_idempotency_view(request):

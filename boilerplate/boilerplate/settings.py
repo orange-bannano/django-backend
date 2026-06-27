@@ -43,6 +43,18 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # Application definition
 
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+# Optional: Add metadata for your frontend generator
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'My Django API',
+    'DESCRIPTION': 'Automated schema for my frontend client',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -53,6 +65,7 @@ INSTALLED_APPS = [
     'learning.apps.LearningConfig',
     "debug_toolbar", # useful for viewing sequel queries through the 'view', requests and response
     'schema_viewer',
+    'drf_spectacular',
 ]
 # The migrate command looks at the INSTALLED_APPS setting
 # and creates any necessary database tables according to the database settings in your boilerplate/settings.py file
