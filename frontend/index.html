@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memo Office — Home</title>
+  <link rel="stylesheet" href="/static/frontend/css/app.css">
+  <script src="/config.js"></script>
+</head>
+<body>
+  <nav id="site-nav"></nav>
+
+  <main>
+    <section class="hero">
+      <h1>Office Memorandum Manager</h1>
+      <p>Create, search, and manage team notes with role-based access, session authentication, and optional idempotent writes.</p>
+    </section>
+
+    <div id="guest-view">
+      <div class="card-grid">
+        <article class="card">
+          <h2>About the system</h2>
+          <p>A lightweight Django backend powers secure memo storage with Employee, Manager, and Admin roles controlling who can view and edit each note.</p>
+        </article>
+        <article class="card">
+          <h2>Session-based API</h2>
+          <p>Sign in with your email and password to receive a session cookie. All CRUD operations run against the JSON API at <code>/api/</code>.</p>
+        </article>
+        <article class="card">
+          <h2>Get started</h2>
+          <p>Log in to access your notes, or open the Django admin shell for database-level management.</p>
+          <div class="card-actions">
+            <a href="/login/" class="btn btn-primary">Log in</a>
+            <a href="/admin/" class="btn btn-ghost" target="_blank" rel="noopener">Django Admin</a>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div id="auth-view" hidden>
+      <div class="card-grid">
+        <article class="card">
+          <h2>About</h2>
+          <p>Welcome back. This workspace connects to your Django learning API for memo CRUD, filtering, pagination, and account management.</p>
+        </article>
+        <article class="card">
+          <h2>Notes CRUD</h2>
+          <p>Create, edit, archive, and search notes. Filter by keyword or exact ID, sort results, and paginate with offset metadata.</p>
+          <div class="card-actions">
+            <a href="/notes/" class="btn btn-primary">Open Notes</a>
+          </div>
+        </article>
+        <article class="card" id="admin-card" hidden>
+          <h2>Admin panel</h2>
+          <p>Manage users and groups, view registrations, and toggle the idempotency feature flag for write operations.</p>
+          <div class="card-actions">
+            <a href="/panel/" class="btn btn-primary">Admin Panel</a>
+          </div>
+        </article>
+        <article class="card">
+          <h2>Account update</h2>
+          <p>Change your password, deactivate your account, or permanently delete it from the system.</p>
+          <div class="card-actions">
+            <a href="/account/" class="btn btn-primary">Account Settings</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="/static/frontend/js/home.js"></script>
+</body>
+</html>

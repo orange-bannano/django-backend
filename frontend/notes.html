@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes — Memo Office</title>
+  <link rel="stylesheet" href="/static/frontend/css/app.css">
+  <script src="/config.js"></script>
+</head>
+<body>
+  <nav id="site-nav"></nav>
+
+  <main>
+    <header class="page-header">
+      <h1>Notes</h1>
+      <p>Create, modify, delete, and search memos. By default the latest 3 notes are shown. Idempotency keys are sent automatically on write requests.</p>
+    </header>
+
+    <div id="notes-alert" class="alert alert-error" hidden></div>
+
+    <section class="panel">
+      <h2>Create note</h2>
+      <form id="create-form">
+        <div class="form-grid">
+          <label>
+            Title
+            <input type="text" name="title" required maxlength="500">
+          </label>
+          <label style="grid-column: 1 / -1;">
+            Body
+            <textarea name="body" maxlength="3000"></textarea>
+          </label>
+        </div>
+        <div style="margin-top: 1rem;">
+          <button type="submit" class="btn btn-primary">Create note</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel" id="edit-panel" hidden>
+      <h2>Edit note</h2>
+      <form id="edit-form">
+        <input type="hidden" name="note_id" id="edit-note-id">
+        <div class="form-grid">
+          <label>
+            Title
+            <input type="text" name="title" id="edit-title" required maxlength="500">
+          </label>
+          <label style="grid-column: 1 / -1;">
+            Body
+            <textarea name="body" id="edit-body" maxlength="3000"></textarea>
+          </label>
+        </div>
+        <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+          <button type="submit" class="btn btn-primary">Save changes</button>
+          <button type="button" id="cancel-edit" class="btn btn-ghost">Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Search &amp; filters</h2>
+      <form id="filter-form">
+        <input type="hidden" name="offset" value="0">
+        <div class="form-grid">
+          <label>
+            Sort by
+            <select name="sort">
+              <option value="-created_at" selected>Newest first</option>
+              <option value="created_at">Oldest first</option>
+              <option value="title">Title A–Z</option>
+              <option value="-title">Title Z–A</option>
+            </select>
+          </label>
+          <label>
+            Notes per page
+            <input type="number" name="limit" value="3" min="1" max="50">
+          </label>
+          <label>
+            Exact note ID
+            <input type="text" name="exact_note_id" placeholder="e.g. 12">
+          </label>
+          <label>
+            Title keyword
+            <input type="text" name="title_keyword" placeholder="Search title…">
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" name="include_archived">
+            Include archived notes
+          </label>
+        </div>
+        <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <button type="submit" class="btn btn-primary">Apply filters</button>
+          <button type="button" id="reset-filters" class="btn btn-ghost">Reset</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Results</h2>
+      <div id="notes-list"></div>
+      <div class="pagination-bar">
+        <button type="button" id="prev-page" class="btn btn-ghost btn-sm" disabled>← Previous</button>
+        <span id="pagination-info" class="muted"></span>
+        <button type="button" id="next-page" class="btn btn-ghost btn-sm" disabled>Next →</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="/static/frontend/js/notes.js"></script>
+</body>
+</html>

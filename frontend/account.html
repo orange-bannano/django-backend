@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account — Memo Office</title>
+  <link rel="stylesheet" href="/static/frontend/css/app.css">
+  <script src="/config.js"></script>
+</head>
+<body>
+  <nav id="site-nav"></nav>
+
+  <main>
+    <header class="page-header">
+      <h1>Account settings</h1>
+      <p>Update your password or manage account lifecycle actions.</p>
+    </header>
+
+    <div id="account-alert" class="alert alert-error" hidden></div>
+
+    <section class="panel">
+      <h2>Update password</h2>
+      <p class="muted">You will be logged out after a successful password change.</p>
+      <form id="password-form">
+        <div class="form-grid" style="max-width: 420px; grid-template-columns: 1fr;">
+          <label>
+            New password
+            <input type="password" name="password" required autocomplete="new-password">
+          </label>
+          <label>
+            Confirm password
+            <input type="password" name="password_confirm" required autocomplete="new-password">
+          </label>
+        </div>
+        <div style="margin-top: 1rem;">
+          <button type="submit" class="btn btn-primary">Update password</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Deactivate account</h2>
+      <p class="muted">Soft-delete: sets your account inactive and logs you out. You can still sign in but cannot perform CRUD until an admin reactivates you.</p>
+      <button type="button" id="deactivate-btn" class="btn btn-ghost">Deactivate my account</button>
+    </section>
+
+    <section class="panel">
+      <h2>Delete account</h2>
+      <p class="muted">Permanently removes your user record. This action cannot be undone.</p>
+      <button type="button" id="delete-btn" class="btn btn-danger">Delete my account permanently</button>
+    </section>
+  </main>
+
+  <script type="module" src="/static/frontend/js/account.js"></script>
+</body>
+</html>
