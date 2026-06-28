@@ -7,15 +7,12 @@ to helper modules so each concept is easy to copy elsewhere.
 from __future__ import annotations
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.models import Group, Permission
-from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
-from rest_framework.decorators import api_view
 
 from learning.auth_views import is_authenticated_or_error, is_admin
 from learning.models import Note, NoteMembership
@@ -40,7 +37,6 @@ User = get_user_model()
 # ============================================================================
 # CHUNK 0: BASIC CRUD AND CONSISTENCY
 # ============================================================================
-@api_view(['GET'])
 @csrf_exempt
 def say_hello(request):
     """Render a simple HTML template.
