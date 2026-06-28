@@ -1,0 +1,9 @@
+Django>=5.0
+django-ratelimit
+python-dotenv>=1.0.0
+gunicorn
+whitenoise
+django-redis
+redis
+dj-database-url
+mysqlclient
