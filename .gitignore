@@ -4,7 +4,7 @@ boilerplate/staticfiles
 boilerplate/assets
 latex report/
 .postman/
-
+.env.railway
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

@@ -49,7 +49,9 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_SSL_REDIRECT = env_bool('SSL', False)
 CSRF_COOKIE_SECURE = env_bool('SSL', False)
 SESSION_COOKIE_SECURE = env_bool('SSL', False)
-
+if env_bool('X_FORWARD',True):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO","https",)
+# This tells Django: "If Nginx hands you an X-Forwarded-Proto header that says 'https', treat the request as fully secure."
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -57,7 +59,7 @@ SESSION_COOKIE_SECURE = env_bool('SSL', False)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv(
     'DJANGO_SECRET_KEY',
-    'django-insecure-y+(enu1o@2zv6t6b1n#p+02(08_8pd4*b29l##g+nrp6oijj=2',
+    'LONG_RANDOM_STRING',
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -107,6 +109,11 @@ MIDDLEWARE = [
 ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,.localhost,[::1]')
 # White lists
 # Can be done in deployement server also
+
+if env_bool('X_FORWARD',True):
+    USE_X_FORWARDED_HOST = True
+# This tells Django: "If Nginx hands you an X-Forwarded-Host header treat that as your host header"
+# Problem:  If Nginx routes traffic internally to localhost, Django might mistakenly try to generate links or execute CSRF validation checks against localhost instead of yourdomain.com.
 
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()

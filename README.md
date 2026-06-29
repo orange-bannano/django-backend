@@ -38,6 +38,9 @@ python manage.py migrate
 python manage.py runserver
 ```
 
+Checkout [Deployment instruction](deployment.md)
+For URL and accessing frontend [root url.py](boilerplate/boilerplate/urls.py) , [app url.py](boilerplate/boilerplate/urls.py) and [frontend doc](boilerplate/learning/templates/README.md)
+
 ## For business logic:
 ### [VIEWS DEALING WITH CRUD AND FEATURES](boilerplate/learning/views.py)
 ### [VIEWS DEALING WITH AUTHENTICATION](boilerplate/learning/auth_views.py)
