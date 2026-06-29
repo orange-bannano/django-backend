@@ -32,7 +32,7 @@ The browser loads `/config.js`, which is generated from these values at runtime.
 1. Start Django: `python manage.py runserver` from `boilerplate/`
 2. Open `http://127.0.0.1:8000/`
 
-Static assets (CSS/JS) are served at `/static/frontend/…`.
+Static assets (CSS/JS) are served at `/static/…`.
 
 ## Separate deployment
 

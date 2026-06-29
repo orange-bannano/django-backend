@@ -8,7 +8,7 @@ from pathlib import Path
 from django.conf import settings
 from django.http import FileResponse, Http404, HttpResponse
 
-FRONTEND_DIR = Path(settings.BASE_DIR).parent / 'frontend'
+FRONTEND_DIR = settings.BASE_DIR / 'learning' / 'templates'
 
 PAGE_MAP = {
     '': 'index.html',

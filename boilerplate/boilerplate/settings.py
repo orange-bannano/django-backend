@@ -69,7 +69,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = env_bool('SESSION_EXPIRE_AT_BROWSER_CLOSE', Fa
 
 # Public URLs consumed by the frontend config endpoint and OpenAPI.
 API_BASE_URL = os.getenv('API_BASE_URL', '').rstrip('/')
-SITE_BASE_URL = os.getenv('SITE_BASE_URL', 'http://127.0.0.1:8000').rstrip('/')
+SITE_BASE_URL = os.getenv('SITE_BASE_URL', 'http://localhost:8000').rstrip('/')
 ADMIN_URL = os.getenv('ADMIN_URL', '/admin/')
 
 # Application definition
@@ -218,11 +218,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-    ('frontend', os.path.join(BASE_DIR.parent, 'frontend')),
-]
 STATIC_ROOT = os.path.join(BASE_DIR, 'assets')
+
+# Specifies where to collect from, if files are in <project>/<app_name>/static, no need
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static'),
+#     ('frontend', os.path.join(BASE_DIR.parent, 'frontend')),
+# ]
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
