@@ -108,6 +108,12 @@ ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,.localhost
 # White lists
 # Can be done in deployement server also
 
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
 ROOT_URLCONF = 'boilerplate.urls'
 
 TEMPLATES = [
